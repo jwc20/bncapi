@@ -8,8 +8,13 @@ from django.utils import timezone
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
-    def create_user(self, email, password, **extra_fields):
-        return User.objects.create(email=email, password=make_password(password))
+    def create_user(self, email, username, password, **extra_fields):
+        return User.objects.create(
+            email=email,
+            username=username,
+            password=make_password(password),
+            **extra_fields,
+        )
 
     def create_superuser(self, login_id, password=None):
         extra_fields = {
@@ -22,7 +27,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser):
     email = models.EmailField(unique=True)
     # password = models.CharField("password", max_length=128, null=True, blank=True)
-    username = models.CharField(max_length=100, db_index=True)
+    username = models.CharField(unique=True, max_length=100, db_index=True)
     disabled = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
     last_login = models.DateTimeField(auto_now=True)

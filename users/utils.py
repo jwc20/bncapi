@@ -59,6 +59,7 @@ class CustomerAccountHandler:
         try:
             user = User.objects.create_user(
                 email=self.email,
+                username=self.username,
                 password=self.password,
             )
             return user

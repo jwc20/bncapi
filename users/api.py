@@ -17,11 +17,11 @@ logger = logging.getLogger(__name__)
 
 
 class UserSchema(Schema):
-    # username: str | None = None
     email: str
 
 
 class UserCreate(UserSchema):
+    username: str
     password: str
 
 
@@ -32,8 +32,7 @@ class UserLogin(UserSchema):
 class UserResponse(Schema):
     id: int
     email: str
-    # Add other fields you want to return
-    # username: str | None = None
+    username: str
 
 
 @api_controller(auth=None, permissions=[])
@@ -73,7 +72,9 @@ class UserAPI:
         validated_data = data.dict()
         try:
             user = User.objects.create_user(
-                email=validated_data["email"], password=validated_data["password"]
+                email=validated_data["email"],
+                username=validated_data["username"],
+                password=validated_data["password"],
             )
         except IntegrityError as e:
             logging.error(e)

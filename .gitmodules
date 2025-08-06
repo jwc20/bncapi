@@ -1,0 +1,8 @@
+[submodule "knoxtokens"]
+	path = knoxtokens
+	url = git@github.com:jwc20/knoxtokens.git
+	branch = submodule
+[submodule "bncpy"]
+	path = bncpy
+	url = git@github.com:jwc20/bncpy.git
+	branch = develop

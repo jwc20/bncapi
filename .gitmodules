@@ -6,3 +6,7 @@
 	path = bncpy
 	url = git@github.com:jwc20/bncpy.git
 	branch = develop
+[submodule "DbmlForDjango"]
+	path = DbmlForDjango
+	url = git@github.com:hamedsj/DbmlForDjango.git
+	branch = master

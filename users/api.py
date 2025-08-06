@@ -36,6 +36,7 @@ class UserResponse(Schema):
 
 class AuthResponse(Schema):
     token: str
+    username: str
     expiry: datetime
 
 
@@ -93,6 +94,7 @@ def login(request, data: UserLogin):
         expiry = token_info["expiry"]
 
         return {
+            "username": user.username,
             "token": token,
             "expiry": expiry,
         }
@@ -110,6 +112,7 @@ def signup(request, data: UserCreate):
         expiry = token_info["expiry"]
 
         return {
+            "username": user.username,
             "token": token,
             "expiry": expiry,
         }

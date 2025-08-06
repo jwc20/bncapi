@@ -21,9 +21,11 @@ INSTALLED_APPS = [
     # third party apps
     "corsheaders",
     "ninja",
+    "silk",
     # custom apps
     "knoxtokens",
     "users",
+    "games",
 ]
 
 MIDDLEWARE = [
@@ -37,6 +39,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "silk.middleware.SilkyMiddleware",
 ]
 
 ROOT_URLCONF = "bncapi.urls"
@@ -122,4 +125,3 @@ CORS_ALLOW_CREDENTIALS = True
 
 # for channels
 ASGI_APPLICATION = "bncapi.asgi.application"
-

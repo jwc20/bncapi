@@ -19,6 +19,7 @@ django==5.2.4
     #   django-cors-headers
     #   django-ninja
     #   django-ninja-extra
+    #   djangorestframework
 django-activity-stream==2.0.0
     # via bncapi (pyproject.toml)
 django-cors-headers==4.7.0
@@ -28,6 +29,8 @@ django-ninja==1.4.3
     #   bncapi (pyproject.toml)
     #   django-ninja-extra
 django-ninja-extra==0.30.1
+    # via bncapi (pyproject.toml)
+djangorestframework==3.16.0
     # via bncapi (pyproject.toml)
 injector==0.22.0
     # via django-ninja-extra

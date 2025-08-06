@@ -29,16 +29,15 @@ class CustomerAccountHandler:
     def _authenticate(self):
         email = self.email.lower() if self.email else None
 
-        # validate email
-
+        # TODO: validate email with pydantic
         # TODO: authenticate using username
         data = {"email": email, "password": self.password}
 
+        # authenticate with the authentication middleware from django project settings ("django.contrib.auth.middleware.AuthenticationMiddleware")
         user = authenticate(
             username=email,
             password=self.password,
         )
-
         if not user:
             try:
                 potential_user = User.objects.get(email=email)
@@ -46,7 +45,6 @@ class CustomerAccountHandler:
                 raise Exception("User does not exist")
             if potential_user.check_password(self.password):
                 self.user = potential_user
-                # self.recover_account()  # can raise RecoveryPeriodExpired exception
                 return potential_user
             raise Exception("Incorrect password or email")
         else:
@@ -57,13 +55,17 @@ class CustomerAccountHandler:
 
     @transaction.atomic
     def email_signup(self):
+        email = self.email.lower() if self.email else None
+        username = self.username.lower() if self.username else None
         try:
             user = User.objects.create_user(
-                email=self.email,
-                username=self.username,
+                email=email,
+                username=username,
                 password=self.password,
             )
-            return user
         except IntegrityError as e:
             logging.error(e)
             return
+
+        token_value, expiry = CreateToken(user=user).create()
+        return user, {"token_value": token_value, "expiry": expiry}

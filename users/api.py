@@ -8,7 +8,6 @@ from ninja_extra import (
 )
 
 from .utils import CustomerAccountHandler
-
 from pydantic import EmailStr
 
 User = get_user_model()
@@ -69,17 +68,14 @@ class UserAPI:
             logging.error(e)
             raise HttpError(400, "Invalid email or password")
 
-    @route.post("/user/signup", response=UserResponse)
+    @route.post("/user/signup")
     def signup(self, request, data: UserCreate):
         validated_data = data.dict()
-        try:
-            user = User.objects.create_user(
-                email=validated_data["email"],
-                username=validated_data["username"],
-                password=validated_data["password"],
-            )
-        except IntegrityError as e:
-            logging.error(e)
-            raise HttpError(400, "User with this email already exists")
+        user, token_info = CustomerAccountHandler(**validated_data).email_signup()
+        token = token_info["token_value"]
+        expiry = token_info["expiry"]
 
-        return user
+        return {
+            "token": token,
+            "expiry": expiry,
+        }

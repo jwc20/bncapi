@@ -1,6 +1,7 @@
 # import uuid
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.hashers import make_password
+from django.core.validators import validate_email, ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -9,6 +10,18 @@ class UserManager(BaseUserManager):
     use_in_migrations = True
 
     def create_user(self, email, username, password, **extra_fields):
+        if not username:
+            raise ValueError("The given username must be set")
+        if not password:
+            raise ValueError("The given password must be set")
+
+        email = email.lower()
+        username = username.lower()
+        try:
+            validate_email(email)
+        except ValidationError as e:
+            raise ValueError(f"Invalid email address: {e}")
+
         return User.objects.create(
             email=email,
             username=username,

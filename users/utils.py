@@ -27,8 +27,9 @@ class CustomerAccountHandler:
         return user, {"token_value": token_value, "expiry": expiry}
 
     def _authenticate(self):
-        # Ensure email is lowercase for authentication
         email = self.email.lower() if self.email else None
+
+        # validate email
 
         # TODO: authenticate using username
         data = {"email": email, "password": self.password}

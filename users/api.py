@@ -9,6 +9,8 @@ from ninja_extra import (
 
 from .utils import CustomerAccountHandler
 
+from pydantic import EmailStr
+
 User = get_user_model()
 
 import logging
@@ -17,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class UserSchema(Schema):
-    email: str
+    email: EmailStr
 
 
 class UserCreate(UserSchema):

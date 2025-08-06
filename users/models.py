@@ -1,3 +1,34 @@
+# import uuid
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.hashers import make_password
 from django.db import models
+from django.utils import timezone
 
-# Create your models here.
+
+class UserManager(BaseUserManager):
+    use_in_migrations = True
+
+    def create_user(self, email, password, **extra_fields):
+        return User.objects.create(email=email, password=make_password(password))
+
+    def create_superuser(self, login_id, password=None):
+        extra_fields = {
+            "is_superuser": True,
+            "is_staff": True,
+        }
+        return self.create_user(login_id, password, **extra_fields)
+
+
+class User(AbstractBaseUser):
+    email = models.EmailField(unique=True)
+    # password = models.CharField("password", max_length=128, null=True, blank=True)
+    username = models.CharField(max_length=100, db_index=True)
+    disabled = models.BooleanField(default=False)
+    date_joined = models.DateTimeField(default=timezone.now)
+    last_login = models.DateTimeField(auto_now=True)
+    password_changed_at = models.DateTimeField(default=timezone.now)
+    is_superuser = models.BooleanField(default=False)
+
+    USERNAME_FIELD = "email"
+
+    objects = UserManager()

@@ -4,17 +4,44 @@ annotated-types==0.7.0
     # via pydantic
 asgiref==3.9.1
     # via
+    #   channels
+    #   channels-redis
+    #   daphne
     #   django
     #   django-cors-headers
+attrs==25.3.0
+    # via
+    #   service-identity
+    #   twisted
+autobahn==24.4.2
+    # via daphne
+automat==25.4.16
+    # via twisted
 cffi==1.17.1
     # via cryptography
-cryptography==45.0.6
+channels==4.3.1
+    # via
+    #   bncapi (pyproject.toml)
+    #   channels-redis
+channels-redis==4.3.0
     # via bncapi (pyproject.toml)
+constantly==23.10.4
+    # via twisted
+cryptography==45.0.6
+    # via
+    #   bncapi (pyproject.toml)
+    #   autobahn
+    #   pyopenssl
+    #   service-identity
+daphne==4.2.1
+    # via channels
 django==5.2.4
     # via
+    #   channels
     #   django-activity-stream
     #   django-cors-headers
     #   django-ninja
+    #   django-silk
     #   djangorestframework
 django-activity-stream==2.0.0
     # via bncapi (pyproject.toml)
@@ -22,14 +49,37 @@ django-cors-headers==4.7.0
     # via bncapi (pyproject.toml)
 django-ninja==1.4.3
     # via bncapi (pyproject.toml)
+django-silk==5.4.0
+    # via bncapi (pyproject.toml)
 djangorestframework==3.16.0
     # via bncapi (pyproject.toml)
 dnspython==2.7.0
     # via email-validator
 email-validator==2.2.0
     # via pydantic
+gprof2dot==2025.4.14
+    # via django-silk
+hyperlink==21.0.0
+    # via
+    #   autobahn
+    #   twisted
 idna==3.10
-    # via email-validator
+    # via
+    #   email-validator
+    #   hyperlink
+    #   twisted
+incremental==24.7.2
+    # via twisted
+msgpack==1.1.1
+    # via channels-redis
+psycopg2-binary==2.9.10
+    # via bncapi (pyproject.toml)
+pyasn1==0.6.1
+    # via
+    #   pyasn1-modules
+    #   service-identity
+pyasn1-modules==0.4.2
+    # via service-identity
 pycparser==2.22
     # via cffi
 pydantic==2.11.7
@@ -38,12 +88,33 @@ pydantic==2.11.7
     #   django-ninja
 pydantic-core==2.33.2
     # via pydantic
+pyopenssl==25.1.0
+    # via twisted
+redis==6.3.0
+    # via channels-redis
+service-identity==24.2.0
+    # via twisted
+setuptools==80.9.0
+    # via
+    #   autobahn
+    #   incremental
+    #   zope-interface
 sqlparse==0.5.3
-    # via django
+    # via
+    #   django
+    #   django-silk
+twisted==25.5.0
+    # via daphne
+txaio==25.6.1
+    # via autobahn
 typing-extensions==4.14.1
     # via
     #   pydantic
     #   pydantic-core
+    #   pyopenssl
+    #   twisted
     #   typing-inspection
 typing-inspection==0.4.1
     # via pydantic
+zope-interface==7.2
+    # via twisted

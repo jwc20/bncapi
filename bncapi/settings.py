@@ -1,11 +1,11 @@
 from pathlib import Path
-
 from django.utils import timezone
+from corsheaders.defaults import default_headers
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # TODO
-SECRET_KEY = "django-insecure-*j8%_vh0y%g*iy0nm(rxp30%3r*#eb9@qgp82l(=6#&gn&v*si"
+SECRET_KEY = "secret"
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -104,4 +104,18 @@ AUTH_HEADER_PREFIX = "TOKEN"
 AUTH_TOKEN_CHARACTER_LENGTH = 64
 TOKEN_KEY_LENGTH = 15
 DIGEST_LENGTH = 128
-sha = "hashlib.sha512"
+# sha = "hashlib.sha512"
+
+# allow all origins
+CORS_ALLOW_ALL_ORIGINS = True
+# allow all methods
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+# allow all headers
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "app-version",
+    "os-type",
+    "token",
+    "api-key",
+]
+# allow all credentials
+CORS_ALLOW_CREDENTIALS = True

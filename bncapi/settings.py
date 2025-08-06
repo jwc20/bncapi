@@ -20,7 +20,6 @@ INSTALLED_APPS = [
     # third party apps
     "corsheaders",
     "ninja",
-    "ninja_extra",
     # custom apps
     "knoxtokens",
     "users",

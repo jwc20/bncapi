@@ -1,0 +1,61 @@
+table LogEntry {
+action_time datetime [note: "primary_key : False<br>nullable : False<br>blank : False"]
+user foreign_key
+content_type foreign_key
+object_id text [note: "primary_key : False<br>nullable : True<br>blank : True"]
+object_repr varchar [note: "primary_key : False<br>max_length : 200<br>nullable : False<br>blank : False"]
+action_flag positive_small_int [note: "primary_key : False<br>nullable : False<br>blank : False<br>choices : [(1, 'Addition'), (2, 'Change'), (3, 'Deletion')]"]
+change_message text [note: "primary_key : False<br>nullable : False<br>blank : True"]
+id int [note: "primary_key : True<br>nullable : False<br>blank : True"]
+}
+
+table Permission {
+name varchar [note: "primary_key : False<br>max_length : 255<br>nullable : False<br>blank : False"]
+content_type foreign_key
+codename varchar [note: "primary_key : False<br>max_length : 100<br>nullable : False<br>blank : False"]
+id int [note: "primary_key : True<br>nullable : False<br>blank : True"]
+}
+
+table Group {
+name varchar [note: "primary_key : False<br>max_length : 150<br>nullable : False<br>blank : False"]
+permissions many_to_many
+id int [note: "primary_key : True<br>nullable : False<br>blank : True"]
+}
+
+table ContentType {
+app_label varchar [note: "primary_key : False<br>max_length : 100<br>nullable : False<br>blank : False"]
+model varchar [note: "primary_key : False<br>max_length : 100<br>nullable : False<br>blank : False"]
+id int [note: "primary_key : True<br>nullable : False<br>blank : True"]
+}
+
+table Session {
+session_key varchar [note: "primary_key : True<br>max_length : 40<br>nullable : False<br>blank : False"]
+session_data text [note: "primary_key : False<br>nullable : False<br>blank : False"]
+expire_date datetime [note: "primary_key : False<br>nullable : False<br>blank : False"]
+}
+
+table KnoxToken {
+digest varchar [note: "primary_key : True<br>max_length : 128<br>nullable : False<br>blank : False"]
+token_key varchar [note: "primary_key : False<br>max_length : 15<br>nullable : False<br>blank : False"]
+user foreign_key
+created datetime [note: "primary_key : False<br>nullable : False<br>blank : True"]
+expiry datetime [note: "primary_key : False<br>nullable : True<br>blank : True"]
+}
+
+table User {
+email email [note: "primary_key : False<br>max_length : 254<br>nullable : False<br>blank : False"]
+username varchar [note: "primary_key : False<br>max_length : 100<br>nullable : False<br>blank : False"]
+disabled boolean [note: "primary_key : False<br>nullable : False<br>blank : False"]
+date_joined datetime [note: "primary_key : False<br>nullable : False<br>blank : False"]
+last_login datetime [note: "primary_key : False<br>nullable : False<br>blank : True"]
+password_changed_at datetime [note: "primary_key : False<br>nullable : False<br>blank : False"]
+is_superuser boolean [note: "primary_key : False<br>nullable : False<br>blank : False"]
+password varchar [note: "primary_key : False<br>max_length : 128<br>nullable : False<br>blank : False"]
+id big_int [note: "primary_key : True<br>nullable : False<br>blank : True"]
+}
+
+ref: LogEntry.user > User.id
+ref: LogEntry.content_type > ContentType.id
+ref: Permission.content_type > ContentType.id
+ref: Group.permissions > Permission.name
+ref: KnoxToken.user > User.id

@@ -11,6 +11,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -104,7 +105,6 @@ AUTH_HEADER_PREFIX = "TOKEN"
 AUTH_TOKEN_CHARACTER_LENGTH = 64
 TOKEN_KEY_LENGTH = 15
 DIGEST_LENGTH = 128
-# sha = "hashlib.sha512"
 
 # allow all origins
 CORS_ALLOW_ALL_ORIGINS = True
@@ -119,3 +119,7 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 ]
 # allow all credentials
 CORS_ALLOW_CREDENTIALS = True
+
+# for channels
+ASGI_APPLICATION = "bncapi.asgi.application"
+

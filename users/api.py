@@ -6,6 +6,7 @@ from typing import List
 
 from .utils import CustomerAccountHandler
 from pydantic import EmailStr
+from datetime import datetime
 
 User = get_user_model()
 
@@ -35,7 +36,7 @@ class UserResponse(Schema):
 
 class AuthResponse(Schema):
     token: str
-    expiry: str
+    expiry: datetime
 
 
 class MeResponse(Schema):

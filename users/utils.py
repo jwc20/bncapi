@@ -9,10 +9,6 @@ from knoxtokens.utils import CreateToken
 from .models import User
 
 
-# import random
-# from knoxtokens.auth import TokenAuthentication
-
-
 class CustomerAccountHandler:
 
     def __init__(self, **kwargs):

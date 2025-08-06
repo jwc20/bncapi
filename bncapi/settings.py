@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # third party apps
     "corsheaders",
+    "ninja",
     "ninja_extra",
     # custom apps
     "knoxtokens",

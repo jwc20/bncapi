@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from django.utils import timezone
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # TODO
@@ -91,3 +93,15 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Custom User
 AUTH_USER_MODEL = "users.User"
+
+
+# Knox settings
+AUTO_REFRESH = False
+TOKEN_TTL = timezone.timedelta(days=90)
+MIN_REFRESH_INTERVAL_SECOND = (60 * 60 * 24,)
+HTTP_HEADER_ENCODING = "iso-8859-1"
+AUTH_HEADER_PREFIX = "TOKEN"
+AUTH_TOKEN_CHARACTER_LENGTH = 64
+TOKEN_KEY_LENGTH = 15
+DIGEST_LENGTH = 128
+sha = "hashlib.sha512"

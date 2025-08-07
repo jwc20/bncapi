@@ -23,7 +23,25 @@ class RoomSchema(Schema):
     name: str
 
 
-# TODO: add schemas
+class RoomResponse(Schema):
+    id: int
+    name: str
+
+
+class CreateRandomSingleplayerRoomRequest(Schema):
+    code_length: int | None = 4
+    num_of_colors: int | None = 6
+    num_of_guesses: int | None = 10
+
+
+class CheckBullsCowsRequest(Schema):
+    room_id: int
+    guess: str
+
+
+class CheckBullsCowsResponse(Schema):
+    bulls: int
+    cows: int
 
 
 @game_router.get("/rooms", response=list[RoomSchema])
@@ -65,3 +83,56 @@ def get_room(request, room_id: int):
     except Exception as e:
         logger.error(f"Room retrieval error: {e}")
         raise HttpError(400, "Room retrieval failed")
+
+
+@game_router.post(
+    "/rooms/singleplayer/random",
+    response=RoomResponse,
+    summary="Create a new singleplayer room",
+)
+def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomRequest):
+    try:
+        # from bnc.utils import get_random_number
+        from bncpy.bnc.utils import get_random_number
+
+        validated_data = data.dict()
+
+        # generate random number as room name
+        # validated_data["name"] = f"singleplayer_room_{}"
+
+        validated_data["secret_code"] = get_random_number(
+            number=validated_data["code_length"],
+            maximum=validated_data["num_of_colors"],
+        )
+        room = Room.objects.create(**validated_data)
+        return RoomResponse(id=room.id, name=room.name)
+    except IntegrityError:
+        raise HttpError(400, "Room with this name already exists")
+    except Exception as e:
+        logger.error(f"Room creation error: {e}")
+        raise HttpError(400, "Room creation failed")
+
+
+@game_router.post("/game/check", response=CheckBullsCowsResponse)
+def check_game(request, data: CheckBullsCowsRequest):
+    # TODO: replace naive solution, use Game, Player, Board classes
+    try:
+        # from bnc.utils import calculate_bulls_and_cows
+        from bncpy.bnc.utils import calculate_bulls_and_cows, validate_code_input
+
+        validated_data = data.dict()
+
+        room = Room.objects.get(id=validated_data["room_id"])
+        _secret_code = room.secret_code
+
+        _secret_code_list = validate_code_input(
+            _secret_code, room.code_length, room.num_of_colors
+        )
+        _guess_list = validate_code_input(
+            validated_data["guess"], room.code_length, room.num_of_colors
+        )
+        bulls, cows = calculate_bulls_and_cows(_secret_code_list, _guess_list)
+        return CheckBullsCowsResponse(bulls=bulls, cows=cows)
+    except Exception as e:
+        logger.error(f"Game check error: {e}")
+        raise HttpError(400, "Game check failed")

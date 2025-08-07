@@ -85,7 +85,7 @@ def get_room(request, room_id: int):
 
 
 @game_router.post(
-    "/rooms/quick-play",
+    "/quick-play",
     response=RoomResponse,
     summary="Create a new singleplayer room with random secret code",
 )

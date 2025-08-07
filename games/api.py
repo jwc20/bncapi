@@ -19,6 +19,7 @@ game_router = Router(tags=["Games"])
 
 
 class RoomSchema(Schema):
+    id: int
     name: str
 
 
@@ -35,6 +36,7 @@ def list_rooms(request, *args, **kwargs):
 
     return [
         {
+            "id": room.id,
             "name": room.name,
         }
         for room in Room.objects.all()
@@ -46,6 +48,7 @@ def create_room(request, data: RoomSchema):
     try:
         room = Room.objects.create(name=data.name)
         return {
+            "id": room.id,
             "name": room.name,
         }
     except IntegrityError:
@@ -60,6 +63,7 @@ def get_room(request, room_id: int):
     try:
         room = Room.objects.get(id=room_id)
         return {
+            "id": room.id,
             "name": room.name,
         }
     except Room.DoesNotExist:

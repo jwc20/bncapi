@@ -106,7 +106,7 @@ MIN_REFRESH_INTERVAL_SECOND = (60 * 60 * 24,)
 HTTP_HEADER_ENCODING = "iso-8859-1"
 AUTH_HEADER_PREFIX = "TOKEN"
 AUTH_TOKEN_CHARACTER_LENGTH = 64
-TOKEN_KEY_LENGTH = 15
+TOKEN_KEY_LENGTH = 8
 DIGEST_LENGTH = 128
 
 # allow all origins
@@ -123,5 +123,14 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 # allow all credentials
 CORS_ALLOW_CREDENTIALS = True
 
-# for channels
+# for django-channels
 ASGI_APPLICATION = "bncapi.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}

@@ -26,12 +26,14 @@ class RoomSchema(Schema):
 class RoomResponse(Schema):
     id: int
     name: str
+    type: int
 
 
 class CreateRandomSingleplayerRoomRequest(Schema):
     code_length: int | None = 4
     num_of_colors: int | None = 6
     num_of_guesses: int | None = 10
+    type: int = 0
 
 
 class CheckBullsCowsRequest(Schema):
@@ -70,14 +72,11 @@ def create_room(request, data: RoomSchema):
         raise HttpError(400, "Room creation failed")
 
 
-@game_router.get("/rooms/{room_id}", response=RoomSchema, summary="Get room by ID")
+@game_router.get("/rooms/{room_id}", response=RoomResponse, summary="Get room by ID")
 def get_room(request, room_id: int):
     try:
         room = Room.objects.get(id=room_id)
-        return {
-            "id": room.id,
-            "name": room.name,
-        }
+        return RoomResponse(id=room.id, name=room.name, type=room.type)
     except Room.DoesNotExist:
         raise HttpError(404, "Room not found")
     except Exception as e:
@@ -86,9 +85,9 @@ def get_room(request, room_id: int):
 
 
 @game_router.post(
-    "/rooms/singleplayer/random",
+    "/rooms/quick-play",
     response=RoomResponse,
-    summary="Create a new singleplayer room",
+    summary="Create a new singleplayer room with random secret code",
 )
 def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomRequest):
     try:
@@ -105,7 +104,7 @@ def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomR
             maximum=validated_data["num_of_colors"],
         )
         room = Room.objects.create(**validated_data)
-        return RoomResponse(id=room.id, name=room.name)
+        return RoomResponse(id=room.id, name=room.name, type=room.type)
     except IntegrityError:
         raise HttpError(400, "Room with this name already exists")
     except Exception as e:
@@ -113,7 +112,11 @@ def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomR
         raise HttpError(400, "Room creation failed")
 
 
-@game_router.post("/game/check", response=CheckBullsCowsResponse)
+@game_router.post(
+    "/rooms/check",
+    response=CheckBullsCowsResponse,
+    summary="Check guess for bulls and cows",
+)
 def check_game(request, data: CheckBullsCowsRequest):
     # TODO: replace naive solution, use Game, Player, Board classes
     try:

@@ -12,6 +12,7 @@ class Room(models.Model):
     code_length = models.IntegerField(default=4, blank=True)
     num_of_colors = models.IntegerField(default=6, blank=True)
     num_of_guesses = models.IntegerField(default=10, blank=True)
+    type = models.IntegerField(default=0)  # 0 = singleplayer, 1 = multiplayer
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

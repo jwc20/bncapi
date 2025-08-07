@@ -52,7 +52,6 @@ def get_user(scope):
 
     try:
         knox_auth = TokenAuthentication()
-        print(token)
         user, auth_token = knox_auth.authenticate(token[0].encode())
 
         if not user or not user.is_active:

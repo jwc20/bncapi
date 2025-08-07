@@ -46,18 +46,30 @@ class MeResponse(Schema):
     username: str
 
 
-user_router = Router(tags=["Users"], auth=None)
+user_router = Router(tags=["Users"])
 auth_router = Router(tags=["Authentication"], auth=None)
 
 
 @user_router.get("/me", response=MeResponse, summary="Get current user")
 def me(request):
-    user = request.user
+    user, token = request.auth
+    if not user or not user.is_authenticated:
+        raise HttpError(401, "Unauthorized")
+
     return {
         "id": user.id,
         "email": user.email,
         "username": user.username,
     }
+
+
+# def me(request):
+# user = request.user
+# return {
+#     "id": user.id,
+#     "email": user.email,
+#     "username": user.username,
+# }
 
 
 @user_router.get("/", response=List[UserResponse], summary="List all users")

@@ -23,17 +23,11 @@ class RoomSchema(Schema):
     name: str
 
 
-# TODO: add auth
 # TODO: add schemas
 
 
 @game_router.get("/rooms", response=list[RoomSchema])
-def list_rooms(request, *args, **kwargs):
-
-    # user = authenticate(request)
-    # if user is None:
-    #     raise HttpError(401, "Unauthorized")
-
+def list_rooms(request):
     return [
         {
             "id": room.id,

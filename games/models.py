@@ -6,8 +6,18 @@ User = get_user_model()
 
 
 class Room(models.Model):
-    name = models.CharField(max_length=128)
-    online = models.ManyToManyField(to=User, blank=True)
+    name = models.CharField(max_length=128, blank=True)
+    # online = models.ManyToManyField(to=User, blank=True)
+    secret_code = models.CharField(max_length=6, blank=True)
+    code_length = models.IntegerField(default=4, blank=True)
+    num_of_colors = models.IntegerField(default=6, blank=True)
+    num_of_guesses = models.IntegerField(default=10, blank=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.name:
+            next_id = Room.objects.count() + 1
+            self.name = f"room_{next_id}"
 
     def get_online_count(self):
         return self.online.count()

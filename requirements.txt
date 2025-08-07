@@ -65,6 +65,8 @@ email-validator==2.2.0
     # via pydantic
 gprof2dot==2025.4.14
     # via django-silk
+gunicorn==23.0.0
+    # via bncapi (pyproject.toml)
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
@@ -86,6 +88,8 @@ incremental==24.7.2
     # via twisted
 msgpack==1.1.1
     # via channels-redis
+packaging==25.0
+    # via gunicorn
 psycopg2-binary==2.9.10
     # via bncapi (pyproject.toml)
 pyasn1==0.6.1

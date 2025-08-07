@@ -98,6 +98,7 @@ dependencies = [
     { name = "channels", extra = ["daphne"] },
     { name = "channels-redis" },
     { name = "cryptography" },
+    { name = "dj-database-url" },
     { name = "django-activity-stream" },
     { name = "django-cors-headers" },
     { name = "django-ninja" },
@@ -107,6 +108,7 @@ dependencies = [
     { name = "httpx" },
     { name = "psycopg2-binary" },
     { name = "pydantic", extra = ["email"] },
+    { name = "uvicorn" },
 ]
 
 [package.optional-dependencies]
@@ -127,6 +129,7 @@ requires-dist = [
     { name = "channels", extras = ["daphne"], specifier = ">=4.3.1" },
     { name = "channels-redis", specifier = ">=4.3.0" },
     { name = "cryptography", specifier = ">=45.0.6" },
+    { name = "dj-database-url", specifier = ">=3.0.1" },
     { name = "django-activity-stream", specifier = ">=2.0.0" },
     { name = "django-cors-headers", specifier = ">=4.7.0" },
     { name = "django-ninja", specifier = ">=1.4.3" },
@@ -140,6 +143,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.7" },
     { name = "setuptools", marker = "extra == 'dev'", specifier = ">=80.9.0" },
     { name = "twine", marker = "extra == 'dev'", specifier = ">=6.1.0" },
+    { name = "uvicorn", specifier = ">=0.35.0" },
     { name = "wheel", marker = "extra == 'dev'", specifier = ">=0.45.1" },
 ]
 
@@ -344,6 +348,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/cd/9d/322b605fdc03b963cf2d33943321c8f4405e8d82e698bf49d1eed1ca40c4/daphne-4.2.1.tar.gz", hash = "sha256:5f898e700a1fda7addf1541d7c328606415e96a7bd768405f0463c312fcb31b3", size = 45600 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/01/34/6171ab34715ed210bcd6c2b38839cc792993cff4fe2493f50bc92b0086a0/daphne-4.2.1-py3-none-any.whl", hash = "sha256:881e96b387b95b35ad85acd855f229d7f5b79073d6649089c8a33f661885e055", size = 29015 },
+]
+
+[[package]]
+name = "dj-database-url"
+version = "3.0.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/75/05/2ec51009f4ce424877dbd8ad95868faec0c3494ed0ff1635f9ab53d9e0ee/dj_database_url-3.0.1.tar.gz", hash = "sha256:8994961efb888fc6bf8c41550870c91f6f7691ca751888ebaa71442b7f84eff8", size = 12556 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/aa/5e/86a43c6fdaa41c12d58e4ff3ebbfd6b71a7cb0360a08614e3754ef2e9afb/dj_database_url-3.0.1-py3-none-any.whl", hash = "sha256:43950018e1eeea486bf11136384aec0fe55b29fe6fd8a44553231b85661d9383", size = 8808 },
 ]
 
 [[package]]
@@ -1184,6 +1200,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/15/22/9ee70a2574a4f4599c47dd506532914ce044817c7752a79b6a51286319bc/urllib3-2.5.0.tar.gz", hash = "sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760", size = 393185 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a7/c2/fe1e52489ae3122415c51f387e221dd0773709bad6c6cdaa599e8a2c5185/urllib3-2.5.0-py3-none-any.whl", hash = "sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc", size = 129795 },
+]
+
+[[package]]
+name = "uvicorn"
+version = "0.35.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "click" },
+    { name = "h11" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5e/42/e0e305207bb88c6b8d3061399c6a961ffe5fbb7e2aa63c9234df7259e9cd/uvicorn-0.35.0.tar.gz", hash = "sha256:bc662f087f7cf2ce11a1d7fd70b90c9f98ef2e2831556dd078d131b96cc94a01", size = 78473 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d2/e2/dc81b1bd1dcfe91735810265e9d26bc8ec5da45b4c0f6237e286819194c3/uvicorn-0.35.0-py3-none-any.whl", hash = "sha256:197535216b25ff9b785e29a0b79199f55222193d47f820816e7da751e9bc8d4a", size = 66406 },
 ]
 
 [[package]]

@@ -113,7 +113,7 @@ def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomR
 
 
 @game_router.post(
-    "/rooms/check",
+    "/check",
     response=CheckBullsCowsResponse,
     summary="Check guess for bulls and cows",
 )

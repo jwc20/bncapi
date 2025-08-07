@@ -34,9 +34,66 @@ session_data text [note: "primary_key : False<br>nullable : False<br>blank : Fal
 expire_date datetime [note: "primary_key : False<br>nullable : False<br>blank : False"]
 }
 
+table Request {
+id varchar [note: "primary_key : True<br>max_length : 36<br>nullable : False<br>blank : False"]
+path varchar [note: "primary_key : False<br>max_length : 190<br>nullable : False<br>blank : False"]
+query_params text [note: "primary_key : False<br>nullable : False<br>blank : True"]
+raw_body text [note: "primary_key : False<br>nullable : False<br>blank : True"]
+body text [note: "primary_key : False<br>nullable : False<br>blank : True"]
+method varchar [note: "primary_key : False<br>max_length : 10<br>nullable : False<br>blank : False"]
+start_time datetime [note: "primary_key : False<br>nullable : False<br>blank : False"]
+view_name varchar [note: "primary_key : False<br>max_length : 190<br>nullable : True<br>blank : True"]
+end_time datetime [note: "primary_key : False<br>nullable : True<br>blank : True"]
+time_taken float [note: "primary_key : False<br>nullable : True<br>blank : True"]
+encoded_headers text [note: "primary_key : False<br>nullable : False<br>blank : True"]
+meta_time float [note: "primary_key : False<br>nullable : True<br>blank : True"]
+meta_num_queries int [note: "primary_key : False<br>nullable : True<br>blank : True"]
+meta_time_spent_queries float [note: "primary_key : False<br>nullable : True<br>blank : True"]
+pyprofile text [note: "primary_key : False<br>nullable : False<br>blank : True"]
+prof_file file [note: "primary_key : False<br>max_length : 300<br>nullable : False<br>blank : True"]
+num_sql_queries int [note: "primary_key : False<br>nullable : False<br>blank : False"]
+}
+
+table Response {
+id varchar [note: "primary_key : True<br>max_length : 36<br>nullable : False<br>blank : False"]
+request one_to_one
+status_code int [note: "primary_key : False<br>nullable : False<br>blank : False"]
+raw_body text [note: "primary_key : False<br>nullable : False<br>blank : True"]
+body text [note: "primary_key : False<br>nullable : False<br>blank : True"]
+encoded_headers text [note: "primary_key : False<br>nullable : False<br>blank : True"]
+}
+
+table SQLQuery {
+query text [note: "primary_key : False<br>nullable : False<br>blank : False"]
+start_time datetime [note: "primary_key : False<br>nullable : True<br>blank : True"]
+end_time datetime [note: "primary_key : False<br>nullable : True<br>blank : True"]
+time_taken float [note: "primary_key : False<br>nullable : True<br>blank : True"]
+identifier int [note: "primary_key : False<br>nullable : False<br>blank : False"]
+request foreign_key
+traceback text [note: "primary_key : False<br>nullable : False<br>blank : False"]
+analysis text [note: "primary_key : False<br>nullable : True<br>blank : True"]
+id int [note: "primary_key : True<br>nullable : False<br>blank : True"]
+}
+
+table Profile {
+file_path varchar [note: "primary_key : False<br>max_length : 300<br>nullable : False<br>blank : True"]
+line_num int [note: "primary_key : False<br>nullable : True<br>blank : True"]
+end_line_num int [note: "primary_key : False<br>nullable : True<br>blank : True"]
+func_name varchar [note: "primary_key : False<br>max_length : 300<br>nullable : False<br>blank : True"]
+exception_raised boolean [note: "primary_key : False<br>nullable : False<br>blank : False"]
+queries many_to_many
+dynamic boolean [note: "primary_key : False<br>nullable : False<br>blank : False"]
+name varchar [note: "primary_key : False<br>max_length : 300<br>nullable : False<br>blank : True"]
+start_time datetime [note: "primary_key : False<br>nullable : False<br>blank : False"]
+end_time datetime [note: "primary_key : False<br>nullable : True<br>blank : True"]
+request foreign_key
+time_taken float [note: "primary_key : False<br>nullable : True<br>blank : True"]
+id int [note: "primary_key : True<br>nullable : False<br>blank : True"]
+}
+
 table KnoxToken {
 digest varchar [note: "primary_key : True<br>max_length : 128<br>nullable : False<br>blank : False"]
-token_key varchar [note: "primary_key : False<br>max_length : 15<br>nullable : False<br>blank : False"]
+token_key varchar [note: "primary_key : False<br>max_length : 8<br>nullable : False<br>blank : False"]
 user foreign_key
 created datetime [note: "primary_key : False<br>nullable : False<br>blank : True"]
 expiry datetime [note: "primary_key : False<br>nullable : True<br>blank : True"]
@@ -54,8 +111,32 @@ password varchar [note: "primary_key : False<br>max_length : 128<br>nullable : F
 id big_int [note: "primary_key : True<br>nullable : False<br>blank : True"]
 }
 
+table Room {
+name varchar [note: "primary_key : False<br>max_length : 128<br>nullable : False<br>blank : True"]
+secret_code varchar [note: "primary_key : False<br>max_length : 6<br>nullable : False<br>blank : True"]
+code_length int [note: "primary_key : False<br>nullable : False<br>blank : True"]
+num_of_colors int [note: "primary_key : False<br>nullable : False<br>blank : True"]
+num_of_guesses int [note: "primary_key : False<br>nullable : False<br>blank : True"]
+type int [note: "primary_key : False<br>nullable : False<br>blank : False"]
+id big_int [note: "primary_key : True<br>nullable : False<br>blank : True"]
+}
+
+table Message {
+user foreign_key
+room foreign_key
+content varchar [note: "primary_key : False<br>max_length : 512<br>nullable : False<br>blank : False"]
+timestamp datetime [note: "primary_key : False<br>nullable : False<br>blank : True"]
+id big_int [note: "primary_key : True<br>nullable : False<br>blank : True"]
+}
+
 ref: LogEntry.user > User.id
 ref: LogEntry.content_type > ContentType.id
 ref: Permission.content_type > ContentType.id
 ref: Group.permissions > Permission.name
+ref: Response.request > Request.id
+ref: SQLQuery.request > Request.id
+ref: Profile.queries > SQLQuery.query
+ref: Profile.request > Request.id
 ref: KnoxToken.user > User.id
+ref: Message.user > User.id
+ref: Message.room > Room.id

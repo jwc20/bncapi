@@ -139,7 +139,12 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [(os.getenv("REDIS_HOST", "localhost"), int(os.getenv("REDIS_PORT", 6379)))],
+            "hosts": [
+                (
+                    os.getenv("REDIS_HOST", "0.0.0.0"),
+                    int(os.getenv("REDIS_PORT", 6379)),
+                )
+            ],
         },
     },
 }
@@ -151,7 +156,7 @@ DATABASES = {
         "NAME": os.getenv("POSTGRES_DB", "postgres"),
         "USER": os.getenv("POSTGRES_USER", "postgres"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
-        "HOST": os.getenv("POSTGRES_HOST", "db"),
+        "HOST": os.getenv("POSTGRES_HOST", "0.0.0.0"),
         "PORT": os.getenv("POSTGRES_PORT", 5432),
     }
 }
@@ -163,4 +168,3 @@ DATABASES = {
 #         "NAME": BASE_DIR / "db.sqlite3",
 #     }
 # }
-

@@ -1,8 +1,15 @@
+from django.db import models
+from django.db.models import JSONField
 from django.contrib.auth import get_user_model
 
-from django.db import models
 
 User = get_user_model()
+
+
+class GameRoom(models.Model):
+    code = models.CharField(max_length=10, unique=True)
+    state = JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Room(models.Model):

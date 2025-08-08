@@ -1,6 +1,8 @@
 from pathlib import Path
 from django.utils import timezone
 from corsheaders.defaults import default_headers
+import os
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,6 +24,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "ninja",
     "silk",
+    "channels",
     # custom apps
     "knoxtokens",
     "users",
@@ -31,6 +34,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     # django default
     "django.middleware.security.SecurityMiddleware",
+    # for serving static files
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     # cors middleware must be placed before CommonMiddleware
     "corsheaders.middleware.CorsMiddleware",
@@ -62,14 +67,6 @@ TEMPLATES = [
 WSGI_APPLICATION = "bncapi.wsgi.application"
 
 
-# TODO: change to Postgres
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -91,7 +88,19 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+
+
+if DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+
+if not DEBUG:
+    # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
+    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+    # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
+    # and renames the files with unique names for each version to support long-term caching
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -126,12 +135,32 @@ CORS_ALLOW_CREDENTIALS = True
 
 # for django-channels
 ASGI_APPLICATION = "bncapi.asgi.application"
-
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [(os.getenv("REDIS_HOST", "localhost"), int(os.getenv("REDIS_PORT", 6379)))],
         },
     },
 }
+
+# postgres
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB", "postgres"),
+        "USER": os.getenv("POSTGRES_USER", "postgres"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
+        "HOST": os.getenv("POSTGRES_HOST", "db"),
+        "PORT": os.getenv("POSTGRES_PORT", 5432),
+    }
+}
+
+# sqlite
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+

@@ -21,15 +21,25 @@ from games import routing
 django_asgi_app = get_asgi_application()
 
 
+
+
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
-    "websocket": AllowedHostsOriginValidator(
-        AuthMiddlewareStack(
-            URLRouter(routing.websocket_urlpatterns),
-        ),
-    ),
+    "websocket": URLRouter(routing.websocket_urlpatterns),
 })
 
+
+
+# TODO: add custom token authentication for websocket
+
+# application = ProtocolTypeRouter({
+#     "http": django_asgi_app,
+#     "websocket": AllowedHostsOriginValidator(
+#         AuthMiddlewareStack(
+#             URLRouter(routing.websocket_urlpatterns),
+#         ),
+#     ),
+# })
 
 # application = ProtocolTypeRouter({
 #     "http": django_asgi_app,

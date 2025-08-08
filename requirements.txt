@@ -19,6 +19,8 @@ autobahn==24.4.2
     # via daphne
 automat==25.4.16
     # via twisted
+brotli==1.1.0
+    # via whitenoise
 certifi==2025.8.3
     # via
     #   httpcore
@@ -145,6 +147,8 @@ typing-extensions==4.14.1
 typing-inspection==0.4.1
     # via pydantic
 uvicorn==0.35.0
+    # via bncapi (pyproject.toml)
+whitenoise==6.9.0
     # via bncapi (pyproject.toml)
 zope-interface==7.2
     # via twisted

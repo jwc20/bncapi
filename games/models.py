@@ -14,7 +14,6 @@ class GameRoom(models.Model):
 
 class Room(models.Model):
     name = models.CharField(max_length=128, blank=True)
-    # online = models.ManyToManyField(to=User, blank=True)
     secret_code = models.CharField(max_length=6, blank=True)
     code_length = models.IntegerField(default=4, blank=True)
     num_of_colors = models.IntegerField(default=6, blank=True)
@@ -27,19 +26,6 @@ class Room(models.Model):
             next_id = Room.objects.count() + 1
             self.name = f"room_{next_id}"
 
-    def get_online_count(self):
-        return self.online.count()
-
-    def join(self, user):
-        self.online.add(user)
-        self.save()
-
-    def leave(self, user):
-        self.online.remove(user)
-        self.save()
-
-    def __str__(self):
-        return f"{self.name} ({self.get_online_count()})"
 
 
 class Message(models.Model):

@@ -21,19 +21,14 @@ game_router = Router(tags=["Games"])
 class RoomSchema(Schema):
     id: int
     name: str
-
-
-class RoomResponse(Schema):
-    id: int
-    name: str
-    type: int
+    game_type: int
 
 
 class CreateRandomSingleplayerRoomRequest(Schema):
     code_length: int | None = 4
     num_of_colors: int | None = 6
     num_of_guesses: int | None = 10
-    type: int = 0
+    game_type: int = 0
 
 
 class CheckBullsCowsRequest(Schema):
@@ -46,12 +41,13 @@ class CheckBullsCowsResponse(Schema):
     cows: int
 
 
-@game_router.get("/rooms", response=list[RoomSchema])
+@game_router.get("/rooms", response=list[RoomSchema], summary="List all rooms")
 def list_rooms(request):
     return [
         {
             "id": room.id,
             "name": room.name,
+            "game_type": room.game_type,
         }
         for room in Room.objects.all()
     ]
@@ -64,6 +60,7 @@ def create_room(request, data: RoomSchema):
         return {
             "id": room.id,
             "name": room.name,
+            "game_type": room.game_type,
         }
     except IntegrityError:
         raise HttpError(400, "Room with this name already exists")
@@ -72,11 +69,11 @@ def create_room(request, data: RoomSchema):
         raise HttpError(400, "Room creation failed")
 
 
-@game_router.get("/rooms/{room_id}", response=RoomResponse, summary="Get room by ID")
+@game_router.get("/rooms/{room_id}", response=RoomSchema, summary="Get room by ID")
 def get_room(request, room_id: int):
     try:
         room = Room.objects.get(id=room_id)
-        return RoomResponse(id=room.id, name=room.name, type=room.type)
+        return RoomSchema(id=room.id, name=room.name, game_type=room.game_type)
     except Room.DoesNotExist:
         raise HttpError(404, "Room not found")
     except Exception as e:
@@ -86,7 +83,7 @@ def get_room(request, room_id: int):
 
 @game_router.post(
     "/quick-play",
-    response=RoomResponse,
+    response=RoomSchema,
     summary="Create a new singleplayer room with random secret code",
 )
 def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomRequest):
@@ -104,7 +101,7 @@ def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomR
             maximum=validated_data["num_of_colors"],
         )
         room = Room.objects.create(**validated_data)
-        return RoomResponse(id=room.id, name=room.name, type=room.type)
+        return RoomSchema(id=room.id, name=room.name, game_type=room.game_type)
     except IntegrityError:
         raise HttpError(400, "Room with this name already exists")
     except Exception as e:

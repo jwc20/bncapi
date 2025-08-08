@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "secret"
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "bncapi.onrender.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "bncapi.onrender.com", "0.0.0.0"]
 
 INSTALLED_APPS = [
     "daphne",

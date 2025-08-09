@@ -1,36 +1,11 @@
 import base64
-import hashlib
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
 
 class EncLibrary:
     def __init__(self):
-        self._pair_key = self._get_pair_key()
-
-    def _get_pair_key(self):
-        """Returns the pair key arrays for substitution cipher"""
-        pair_key = [[], []]
-
-        pair_key[0] = [
-            'A', 'd', 'K', 'a', '!', '6', 'y', 'r', '7', 'M', ')',
-            '(', 'z', 'U', '`', '{', 'V', '[', '#', 'f', '1', '8',
-            ':', 'o', 'x', '@', 'L', 'R', 'G', '%', '&', '^', ';',
-            'P', '=', 'e', '}', 'i', 'D', 'T', 's', 'S', '>', '-',
-            '/', ',', '+', '<', 'v', ']', 't', '~', 'C', 'u', '$',
-            'N', '_', 'j', '*', '?', 'c', 'q', '.', 'J', 'O'
-        ]
-
-        pair_key[1] = [
-            'O', 'N', 'L', 'Y', 'b', 'y', 'G', 'R', 'A', 'C', 'E',
-            'j', 'Q', 'g', 'w', 'B', 'h', 'x', 'S', 'i', 'D', 'T',
-            'z', 'U', 'k', '0', 'F', 'V', 'l', '1', 'W', 'm', '2',
-            'H', 'X', 'n', '3', 'I', 'o', '4', 'J', 'Z', 'p', '5',
-            'K', 'a', 'q', '6', 'r', '7', 'M', 'c', 's', '8', 'd',
-            't', '9', 'e', 'u', '+', 'P', 'f', 'v', '/', '='
-        ]
-
-        return pair_key
+        pass
 
     def base64_enc(self, value, encoding='utf-8'):
         """Base64 encode a string"""
@@ -48,39 +23,6 @@ class EncLibrary:
         byte_data = base64.b64decode(value)
         return byte_data.decode(encoding)
 
-    def two_way_enc(self, value):
-        """Two-way encryption using character substitution"""
-        if not value or value.isspace():
-            return ''
-
-        base64_text = self.base64_enc(value)
-        result = []
-
-        for char in base64_text:
-            try:
-                idx = self._pair_key[1].index(char)
-                result.append(self._pair_key[0][idx])
-            except ValueError:
-                result.append(char)
-
-        return ''.join(result)
-
-    def two_way_dec(self, value):
-        """Two-way decryption using character substitution"""
-        if not value or value.isspace():
-            return ''
-
-        result = []
-
-        for char in value:
-            try:
-                idx = self._pair_key[0].index(char)
-                result.append(self._pair_key[1][idx])
-            except ValueError:
-                result.append(char)
-
-        base64_text = ''.join(result)
-        return self.base64_dec(base64_text)
 
     def two_way_enc_aes(self, key, value):
         """Two-way encryption using AES"""
@@ -123,27 +65,6 @@ class EncLibrary:
         except Exception:
             return ''
 
-    def one_way_enc(self, value):
-        """One-way encryption using SHA1"""
-        sha1 = hashlib.sha1()
-        sha1.update(value.encode('utf-8'))
-        return base64.b64encode(sha1.digest()).decode('ascii')
-
-    def wd_enc(self, value):
-        """Custom encoding function"""
-        if not value or value.isspace():
-            return ''
-
-        result = []
-
-        for char in value:
-            # Get ASCII code
-            c_code = ord(char)
-            # Apply transformation
-            c_code = (c_code + 73) % 256
-            result.append(str(c_code))
-
-        return ' '.join(result)
 
 
 # Example usage:
@@ -151,7 +72,11 @@ if __name__ == "__main__":
     enc = EncLibrary()
 
     # Test base64 encoding/decoding
-    test_string = "Hello, World!"
+    test_string = """
+    {"mode": "SINGLE_BOARD", "config": {"code_length": 4, "secret_code": "7828", "num_of_colors": 10, "num_of_guesses": 10}, "guesses": [{"cows": 1, "bulls": 0, "guess": "8111", "player": "Anonymous", "timestamp": "2025-08-09T13:55:10.248873+00:00"}, {"cows": 1, "bulls": 0, "guess": "1234", "player": "Anonymous", "timestamp": "2025-08-09T13:55:10.248879+00:00"}, {"cows": 1, "bulls": 0, "guess": "1244", "player": "Anonymous", "timestamp": "2025-08-09T13:55:10.248881+00:00"}, {"cows": 1, "bulls": 0, "guess": "1299", "player": "Anonymous", "timestamp": "2025-08-09T13:55:10.248882+00:00"}, {"cows": 1, "bulls": 0, "guess": "1234", "player": "Anonymous", "timestamp": "2025-08-09T13:55:10.248884+00:00"}, {"cows": 0, "bulls": 0, "guess": "4444", "player": "Anonymous", "timestamp": "2025-08-09T13:55:10.248885+00:00"}, {"cows": 0, "bulls": 0, "guess": "5555", "player": "Anonymous", "timestamp": "2025-08-09T13:55:10.248887+00:00"}, {"cows": 0, "bulls": 0, "guess": "6666", "player": "Anonymous", "timestamp": "2025-08-09T13:55:10.248889+00:00"}, {"cows": 0, "bulls": 1, "guess": "7777", "player": "Anonymous", "timestamp": "2025-08-09T13:55:10.248891+00:00"}], "players": [], "winners": [], "game_won": false, "game_over": false, "current_row": 9, "secret_code": null, "game_started": true, "remaining_guesses": 1}
+    """
+    
+    
     encoded = enc.base64_enc(test_string)
     decoded = enc.base64_dec(encoded)
     print(f"Base64 - Original: {test_string}")
@@ -159,32 +84,23 @@ if __name__ == "__main__":
     print(f"Base64 - Decoded: {decoded}")
     print()
 
-    # Test character substitution encryption/decryption
-    encrypted = enc.two_way_enc(test_string)
-    decrypted = enc.two_way_dec(encrypted)
-    print(f"Substitution - Original: {test_string}")
-    print(f"Substitution - Encrypted: {encrypted}")
-    print(f"Substitution - Decrypted: {decrypted}")
-    print()
-
     # Test AES encryption/decryption
-    key = "MySecretKey123"
+    key = "mySecretKey123"
     aes_encrypted = enc.two_way_enc_aes(key, test_string)
     aes_decrypted = enc.two_way_dec_aes(key, aes_encrypted)
     print(f"AES - Original: {test_string}")
     print(f"AES - Encrypted: {aes_encrypted}")
     print(f"AES - Decrypted: {aes_decrypted}")
     print()
-
-    # Test SHA1 hashing
-    hashed = enc.one_way_enc(test_string)
-    print(f"SHA1 - Original: {test_string}")
-    print(f"SHA1 - Hashed: {hashed}")
-    print()
-
-    # Test WD encoding
-    wd_encoded = enc.wd_enc(test_string)
-    print(f"WD - Original: {test_string}")
-    print(f"WD - Encoded: {wd_encoded}")
     
+    
+    
+    aes_base64_encoded = enc.base64_enc(aes_encrypted)
+    print(f"AES Base64 - Encrypted: {aes_base64_encoded}")
+    aes_base64_decrypted = enc.base64_dec(aes_base64_encoded)
+    print(f"AES Base64 - Decrypted: {aes_base64_decrypted}")
+    print()
+    
+
+
     

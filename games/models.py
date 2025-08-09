@@ -8,10 +8,10 @@ User = get_user_model()
 
 class Room(models.Model):
     name = models.CharField(max_length=128, blank=True)
-    secret_code = models.CharField(max_length=6, blank=True)
-    code_length = models.IntegerField(default=4, blank=True)
-    num_of_colors = models.IntegerField(default=6, blank=True)
-    num_of_guesses = models.IntegerField(default=10, blank=True)
+    secret_code = models.CharField(max_length=10, blank=True)
+    code_length = models.IntegerField(default=5, blank=True)
+    num_of_colors = models.IntegerField(default=26, blank=True)
+    num_of_guesses = models.IntegerField(default=20, blank=True)
     game_type = models.IntegerField(default=0)  # 0 = singleplayer, 1 = multiplayer, 2 =multiplayer (single board)
 
     active_users = models.ManyToManyField(User, related_name="active_rooms", blank=True)

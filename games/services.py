@@ -1,6 +1,6 @@
-# from asgiref.sync import sync_to_async
 from channels.db import database_sync_to_async
 from .models import Room
+from bncpy.bnc import GameState, GameConfig, GameMode
 
 
 class GameService:
@@ -10,123 +10,93 @@ class GameService:
         try:
             room = Room.objects.get(id=room_id)
             action = payload.get("action")
-
+            
+            state = GameService._load_state(room)
+            
             if action == "submit_guess":
-                return GameService._handle_guess(room, payload.get("guess"), user)
+                result = GameService._handle_guess(state, room, payload.get("guess"), user)
             elif action == "reset_game":
-                return GameService._reset_game(room)
+                result = GameService._reset_game(state, room)
             elif action == "join_room":
-                return GameService._join_room(room, user)
+                result = GameService._join_room(state, room, user)
             elif action == "leave_room":
-                return GameService._leave_room(room, user)
+                result = GameService._leave_room(state, room, user)
+            elif action == "start_game":
+                result = GameService._start_game(state, room)
             else:
                 return {"error": "Unknown action"}
+            
+            return result
 
         except Room.DoesNotExist:
             return {"error": "Room not found"}
         except Exception as e:
             return {"error": str(e)}
-
-    # def _validate_guess(guess, secret_code):
-    #     from bncpy.bnc.utils import validate_code_input
-
-    #     guess_list = validate_code_input(guess, room.code_length, room.num_of_colors)
-    #     secret_code_list = validate_code_input(
-    #         secret_code, room.code_length, room.num_of_colors
-    #     )
-    #     return
-
+    
     @staticmethod
-    def _handle_guess(room, guess, user=None):
-        state = room.game_state
-        if state.get("gameOver", False):
-            return {**state, "error": "Game is already over"}
-
-        if not guess or len(guess) != room.code_length:
-            return {**state, "error": f"Guess must be {room.code_length} digits"}
-
-        bulls, cows = GameService._calculate_feedback(guess, room.secret_code)
-
-        # add to history
-        guess_entry = {
-            "guess": guess,
-            "bulls": bulls,
-            "cows": cows,
-            "player": user.username if user else "Anonymous",
-        }
-
-        # TODO use game class instead to handle state
-        state["guesses"].append(guess_entry)
-        state["currentRow"] += 1
-        state["remainingGuesses"] = room.num_of_guesses - state["currentRow"]
-
-        if bulls == room.code_length:
-            state["gameOver"] = True
-            state["gameWon"] = True
-            state["secretCode"] = room.secret_code
-        elif state["currentRow"] >= room.num_of_guesses:
-            state["gameOver"] = True
-            state["gameWon"] = False
-            state["secretCode"] = room.secret_code
-
-        room.game_state = state
+    def _load_state(room) -> GameState:
+        config = GameConfig(
+            code_length=room.code_length,
+            num_of_colors=room.num_of_colors,
+            num_of_guesses=room.num_of_guesses,
+            secret_code=room.secret_code
+        )
+        
+        if room.game_state:
+            return GameState.from_dict(room.game_state, config)
+        else:
+            # Create new state if none exists
+            return GameState(config=config)
+    
+    @staticmethod
+    def _save_state(state: GameState, room) -> dict:
+        room.secret_code = state.config.secret_code
+        
+        state_dict = state.to_dict()
+        room.game_state = state_dict
         room.save()
-
-        return state
-
+        
+        return state_dict
+    
     @staticmethod
-    def _calculate_feedback(guess, secret):
-        from bncpy.bnc.utils import calculate_bulls_and_cows
-
-        bulls, cows = calculate_bulls_and_cows(guess, secret)
-        return bulls, cows
-
+    def _handle_guess(state: GameState, room, guess: str, user=None) -> dict:
+        player_name = user.username if user and user.is_authenticated else "Anonymous"
+        
+        result = state.submit_guess(player_name, guess)
+        
+        if "error" in result:
+            return result
+        
+        return GameService._save_state(state, room)
+    
     @staticmethod
-    def _reset_game(room):
-        # from bnc.utils import get_random_number
-        # from bncpy.bnc.utils import get_random_number
-
-        # room.secret_code = get_random_number(
-        #     number=room.code_length, maximum=room.num_of_colors
-        # )
-
-        room.game_state = {
-            "guesses": [],
-            "currentRow": 0,
-            "gameOver": False,
-            "gameWon": False,
-            "remainingGuesses": room.num_of_guesses,
-            "secretCode": None,
-            "players": room.game_state.get("players", []),
-        }
-        room.save()
-
-        return room.game_state
-
+    def _reset_game(state: GameState, room) -> dict:
+        state.reset()
+        return GameService._save_state(state, room)
+    
     @staticmethod
-    def _join_room(room, user):
+    def _start_game(state: GameState, room) -> dict:
+        if not state.config.secret_code:
+            state.config.secret_code = state.config.generate_secret_code()
+        
+        state.game_started = True
+        return GameService._save_state(state, room)
+    
+    @staticmethod
+    def _join_room(state: GameState, room, user) -> dict:
         if user and user.is_authenticated:
             room.active_users.add(user)
-            state = room.game_state
-            players = state.get("players", [])
-            username = user.username
-            if username not in players:
-                players.append(username)
-            state["players"] = players
-            room.game_state = state
+            state.add_player(user.username)
             room.save()
-        return room.game_state
-
+        
+        return GameService._save_state(state, room)
+    
     @staticmethod
-    def _leave_room(room, user):
+    def _leave_room(state: GameState, room, user) -> dict:
         if user and user.is_authenticated:
             room.active_users.remove(user)
-            state = room.game_state
-            players = state.get("players", [])
-            username = user.username
-            if username in players:
-                players.remove(username)
-            state["players"] = players
-            room.game_state = state
+            state.remove_player(user.username)
             room.save()
-        return room.game_state
+        
+        return GameService._save_state(state, room)
+    

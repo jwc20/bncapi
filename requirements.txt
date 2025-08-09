@@ -95,6 +95,8 @@ idna==3.10
     #   twisted
 incremental==24.7.2
     # via twisted
+jsonpickle==4.1.1
+    # via bncapi (pyproject.toml)
 msgpack==1.1.1
     # via channels-redis
 packaging==25.0

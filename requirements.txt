@@ -119,8 +119,12 @@ pydantic-core==2.33.2
     # via pydantic
 pyopenssl==25.1.0
     # via twisted
+python-dotenv==1.1.1
+    # via bncapi (pyproject.toml)
 redis==6.3.0
     # via channels-redis
+schedule==1.2.2
+    # via bncapi (pyproject.toml)
 service-identity==24.2.0
     # via twisted
 setuptools==80.9.0

@@ -39,7 +39,6 @@ constantly==23.10.4
     # via twisted
 cryptography==45.0.6
     # via
-    #   bncapi (pyproject.toml)
     #   autobahn
     #   pyopenssl
     #   service-identity
@@ -111,6 +110,8 @@ pyasn1-modules==0.4.2
     # via service-identity
 pycparser==2.22
     # via cffi
+pycryptodome==3.23.0
+    # via bncapi (pyproject.toml)
 pydantic==2.11.7
     # via
     #   bncapi (pyproject.toml)

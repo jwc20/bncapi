@@ -1,6 +1,6 @@
 from channels.db import database_sync_to_async
 from .models import Room
-from bncpy.bnc import GameState, GameConfig, GameMode
+from bncpy.bnc import GameState, GameConfig
 
 
 class GameService:

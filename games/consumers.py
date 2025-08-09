@@ -16,8 +16,9 @@ class GameConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.room_id = self.scope["url_route"]["kwargs"]["room_id"]
+        print(self.room_id)
         self.room_group_name = f"game_{self.room_id}"
-        self.user = self.scope.get("user")
+        # self.user = self.scope.get("user")
 
         try:
             self.room = await database_sync_to_async(Room.objects.get)(id=self.room_id)
@@ -26,9 +27,10 @@ class GameConsumer(AsyncWebsocketConsumer):
                 await database_sync_to_async(self.room.initialize_game)()
 
             if self.user and self.user.is_authenticated:
-                game_state = await GameService.handle_move(
-                    self.room_id, {"action": "join_room"}, self.user
-                )
+                # game_state = await GameService.handle_move(
+                #     self.room_id, {"action": "join_room"}, self.user
+                # )
+                pass
             else:
                 game_state = await database_sync_to_async(
                     lambda: self.room.game_state

@@ -27,7 +27,6 @@ class GameService:
         except Exception as e:
             return {"error": str(e)}
 
-
     # def _validate_guess(guess, secret_code):
     #     from bncpy.bnc.utils import validate_code_input
 
@@ -56,12 +55,11 @@ class GameService:
             "player": user.username if user else "Anonymous",
         }
 
-
         # TODO use game class instead to handle state
-        state["guesses"].append(guess_entry)        
+        state["guesses"].append(guess_entry)
         state["currentRow"] += 1
         state["remainingGuesses"] = room.num_of_guesses - state["currentRow"]
-        
+
         if bulls == room.code_length:
             state["gameOver"] = True
             state["gameWon"] = True
@@ -71,7 +69,6 @@ class GameService:
             state["gameWon"] = False
             state["secretCode"] = room.secret_code
 
-        
         room.game_state = state
         room.save()
 
@@ -87,7 +84,7 @@ class GameService:
     @staticmethod
     def _reset_game(room):
         # from bnc.utils import get_random_number
-        from bncpy.bnc.utils import get_random_number
+        # from bncpy.bnc.utils import get_random_number
 
         # room.secret_code = get_random_number(
         #     number=room.code_length, maximum=room.num_of_colors
@@ -99,7 +96,7 @@ class GameService:
             "gameOver": False,
             "gameWon": False,
             "remainingGuesses": room.num_of_guesses,
-            # "secretCode": None,
+            "secretCode": None,
             "players": room.game_state.get("players", []),
         }
         room.save()

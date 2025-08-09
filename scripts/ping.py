@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """
 https://stackoverflow.com/questions/75741942/prevent-render-com-server-from-sleeping
+- render server will sleep after 15 minutes of inactivity
+- render has a 750-hour limit per month, which is about 31 days
 """
 import os
 import sys

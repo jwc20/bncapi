@@ -37,7 +37,6 @@ class GameConsumer(AsyncWebsocketConsumer):
 
         try:
             self.room = await database_sync_to_async(Room.objects.get)(id=self.room_id)
-
             if not self.room.game_state:
                 await database_sync_to_async(self.room.initialize_game)()
 
@@ -119,6 +118,10 @@ class GameConsumer(AsyncWebsocketConsumer):
                 )
             elif event_type == "ping":
                 await self.send(text_data=json.dumps({"type": "pong"}))
+
+            # TODO: add chat
+            elif event_type == "chat_message":
+                pass
             else:
                 await self.send(
                     text_data=json.dumps(
@@ -137,7 +140,6 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"type": "error", "message": str(e)}))
 
     async def game_update(self, event):
-        """Send game update to WebSocket"""
         await self.send(
             text_data=json.dumps({"type": "update", "state": event["state"]})
         )

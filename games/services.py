@@ -14,7 +14,6 @@ class GameService:
         try:
             room = Room.objects.get(id=room_id)
             action = payload.get("action")
-
             state = GameService._load_state(room)
 
             if action == "submit_guess":
@@ -31,7 +30,6 @@ class GameService:
                 result = GameService._start_game(state, room)
             else:
                 return {"error": "Unknown action"}
-
             return result
 
         except Room.DoesNotExist:

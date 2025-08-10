@@ -1,7 +1,10 @@
 from channels.db import database_sync_to_async
 from .models import Room
 from bncpy.bnc import GameState, GameConfig
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model  # TODO: use this to get the username?
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class GameService:
@@ -45,10 +48,13 @@ class GameService:
             secret_code=room.secret_code,
         )
 
-        if room.game_state:
-            return GameState.from_dict(room.game_state, config)
+        if room.game_state and isinstance(room.game_state, dict):
+            try:
+                return GameState.from_dict(room.game_state, config)
+            except Exception as e:
+                logger.error(f"Error loading game state: {e}, creating new state")
+                return GameState(config=config)
         else:
-            # Create new state if none exists
             return GameState(config=config)
 
     @staticmethod
@@ -87,24 +93,13 @@ class GameService:
     @staticmethod
     def _join_room(state: GameState, room, player_info) -> dict:
         if player_info and player_info.get("token"):
-            # Use the token as the player identifier
             player_token = player_info["token"]
-            
-            # Add player to the game state using the token
             state.add_player(player_token)
-            
-            # Note: We're not using room.active_users since we're not using Django auth
-            # But you could create a custom field to track connected players if needed
-
         return GameService._save_state(state, room)
 
     @staticmethod
     def _leave_room(state: GameState, room, player_info) -> dict:
         if player_info and player_info.get("token"):
-            # Use the token as the player identifier
             player_token = player_info["token"]
-            
-            # Remove player from the game state using the token
             state.remove_player(player_token)
-
         return GameService._save_state(state, room)

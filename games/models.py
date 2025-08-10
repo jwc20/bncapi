@@ -1,4 +1,3 @@
-# models.py
 from django.db import models
 from django.db.models import JSONField
 from django.contrib.auth import get_user_model
@@ -32,27 +31,23 @@ class Room(models.Model):
 
     def initialize_game(self):
         from bncpy.bnc.utils import get_random_number
+        from bncpy.bnc import GameConfig, GameState
 
         if not self.secret_code:
             self.secret_code = get_random_number(
                 number=self.code_length, maximum=self.num_of_colors
             )
 
-        self.game_state = {
-            "config": {
-                "code_length": self.code_length,
-                "num_of_colors": self.num_of_colors,
-                "num_of_guesses": self.num_of_guesses,
-                "secret_code": self.secret_code,
-            },
-            "guesses": [],
-            "current_row": 0,
-            "game_over": False,
-            "game_won": False,
-            "remaining_guesses": self.num_of_guesses,
-            "secret_code": None,
-            "players": [],
-        }
+        config = GameConfig(
+            code_length=self.code_length,
+            num_of_colors=self.num_of_colors,
+            num_of_guesses=self.num_of_guesses,
+            secret_code=self.secret_code,
+        )
+
+        game_state = GameState(config=config)
+
+        self.game_state = game_state.to_dict()
         self.save()
 
 

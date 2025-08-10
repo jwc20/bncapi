@@ -23,6 +23,10 @@ class RoomSchema(Schema):
     id: int
     name: str
     game_type: int
+    code_length: int | None
+    num_of_colors: int | None
+    num_of_guesses: int | None
+    secret_code: str | None
 
 
 class CreateRoomRequest(Schema):
@@ -58,6 +62,10 @@ def list_rooms(request):
             "id": room.id,
             "name": room.name,
             "game_type": room.game_type,
+            "code_length": room.code_length,
+            "num_of_colors": room.num_of_colors,
+            "num_of_guesses": room.num_of_guesses,
+            "secret_code": room.secret_code,
         }
         for room in Room.objects.all()
     ]
@@ -78,6 +86,10 @@ def create_room(request, data: CreateRoomRequest):
             "id": room.id,
             "name": room.name,
             "game_type": room.game_type,
+            "code_length": room.code_length,
+            "num_of_colors": room.num_of_colors,
+            "num_of_guesses": room.num_of_guesses,
+            "secret_code": room.secret_code,
         }
     except Exception as e:
         logger.error(f"Room creation error: {e}")
@@ -88,7 +100,15 @@ def create_room(request, data: CreateRoomRequest):
 def get_room(request, room_id: int):
     try:
         room = Room.objects.get(id=room_id)
-        return RoomSchema(id=room.id, name=room.name, game_type=room.game_type)
+        return RoomSchema(
+            id=room.id,
+            name=room.name,
+            game_type=room.game_type,
+            code_length=room.code_length,
+            num_of_colors=room.num_of_colors,
+            num_of_guesses=room.num_of_guesses,
+            secret_code=room.secret_code,
+        )
     except Room.DoesNotExist:
         raise HttpError(404, "Room not found")
     except Exception as e:

@@ -65,22 +65,20 @@ def list_rooms(request):
 
 @game_router.post("/rooms", response=RoomSchema, summary="Create a new room")
 def create_room(request, data: CreateRoomRequest):
+    from bncpy.bnc.utils import get_random_number
+
+    validated_data = data.dict()
+    validated_data["secret_code"] = get_random_number(
+        number=validated_data["code_length"],
+        maximum=validated_data["num_of_colors"],
+    )
     try:
-        room = Room.objects.create(
-            name=data.name,
-            game_type=data.game_type,
-            code_length=data.code_length,
-            num_of_colors=data.num_of_colors,
-            num_of_guesses=data.num_of_guesses,
-            secret_code=data.secret_code,
-        )
+        room = Room.objects.create(**validated_data)
         return {
             "id": room.id,
             "name": room.name,
             "game_type": room.game_type,
         }
-    except IntegrityError:
-        raise HttpError(400, "Room with this name already exists")
     except Exception as e:
         logger.error(f"Room creation error: {e}")
         raise HttpError(400, "Room creation failed")

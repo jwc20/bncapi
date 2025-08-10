@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from ninja import Router, Schema
 from ninja.errors import HttpError
+
 # from typing import List
 # from datetime import datetime
 # from knoxtokens.auth import TokenAuthentication
@@ -22,6 +23,15 @@ class RoomSchema(Schema):
     id: int
     name: str
     game_type: int
+
+
+class CreateRoomRequest(Schema):
+    name: str
+    game_type: int
+    code_length: int | None = 4
+    num_of_colors: int | None = 6
+    num_of_guesses: int | None = 10
+    secret_code: str | None
 
 
 class CreateRandomSingleplayerRoomRequest(Schema):
@@ -54,9 +64,16 @@ def list_rooms(request):
 
 
 @game_router.post("/rooms", response=RoomSchema, summary="Create a new room")
-def create_room(request, data: RoomSchema):
+def create_room(request, data: CreateRoomRequest):
     try:
-        room = Room.objects.create(name=data.name)
+        room = Room.objects.create(
+            name=data.name,
+            game_type=data.game_type,
+            code_length=data.code_length,
+            num_of_colors=data.num_of_colors,
+            num_of_guesses=data.num_of_guesses,
+            secret_code=data.secret_code,
+        )
         return {
             "id": room.id,
             "name": room.name,
@@ -69,12 +86,6 @@ def create_room(request, data: RoomSchema):
         raise HttpError(400, "Room creation failed")
 
 
-
-
-
-
-
-
 @game_router.get("/rooms/{room_id}", response=RoomSchema, summary="Get room by ID")
 def get_room(request, room_id: int):
     try:
@@ -85,18 +96,6 @@ def get_room(request, room_id: int):
     except Exception as e:
         logger.error(f"Room retrieval error: {e}")
         raise HttpError(400, "Room retrieval failed")
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # TODO: deprecate

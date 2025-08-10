@@ -69,6 +69,12 @@ def create_room(request, data: RoomSchema):
         raise HttpError(400, "Room creation failed")
 
 
+
+
+
+
+
+
 @game_router.get("/rooms/{room_id}", response=RoomSchema, summary="Get room by ID")
 def get_room(request, room_id: int):
     try:
@@ -81,6 +87,19 @@ def get_room(request, room_id: int):
         raise HttpError(400, "Room retrieval failed")
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+# TODO: deprecate
 @game_router.post(
     "/quick-play",
     response=RoomSchema,
@@ -109,6 +128,7 @@ def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomR
         raise HttpError(400, "Room creation failed")
 
 
+# TODO: deprecate
 @game_router.post(
     "/check",
     response=CheckBullsCowsResponse,

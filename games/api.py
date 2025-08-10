@@ -77,8 +77,8 @@ def create_room(request, data: CreateRoomRequest):
 
     validated_data = data.dict()
     validated_data["secret_code"] = get_random_number(
-        number=validated_data["code_length"],
-        maximum=validated_data["num_of_colors"],
+        length=validated_data["code_length"],
+        max_value=validated_data["num_of_colors"],
     )
     try:
         room = Room.objects.create(**validated_data)
@@ -133,8 +133,8 @@ def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomR
         # validated_data["name"] = f"singleplayer_room_{}"
 
         validated_data["secret_code"] = get_random_number(
-            number=validated_data["code_length"],
-            maximum=validated_data["num_of_colors"],
+            length=validated_data["code_length"],
+            max_value=validated_data["num_of_colors"],
         )
         room = Room.objects.create(**validated_data)
         return RoomSchema(id=room.id, name=room.name, game_type=room.game_type)

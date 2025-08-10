@@ -39,12 +39,18 @@ class Room(models.Model):
             )
 
         self.game_state = {
+            "config": {
+                "code_length": self.code_length,
+                "num_of_colors": self.num_of_colors,
+                "num_of_guesses": self.num_of_guesses,
+                "secret_code": self.secret_code,
+            },
             "guesses": [],
-            "currentRow": 0,
-            "gameOver": False,
-            "gameWon": False,
-            "remainingGuesses": self.num_of_guesses,
-            "secretCode": None,  # Don't reveal until game over
+            "current_row": 0,
+            "game_over": False,
+            "game_won": False,
+            "remaining_guesses": self.num_of_guesses,
+            "secret_code": None,
             "players": [],
         }
         self.save()

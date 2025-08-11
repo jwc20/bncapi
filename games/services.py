@@ -1,8 +1,10 @@
 from channels.db import database_sync_to_async
 from .models import Room
 from bncpy.bnc import GameState, GameConfig
-from django.contrib.auth import get_user_model  # TODO: use this to get the username?
+
+# from django.contrib.auth import get_user_model  # TODO: use this to get the username?
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,7 @@ class GameService:
             num_of_colors=room.num_of_colors,
             num_of_guesses=room.num_of_guesses,
             secret_code=room.secret_code,
+            game_type=room.game_type,
         )
 
         if room.game_state and isinstance(room.game_state, dict):

@@ -1,38 +1,54 @@
-from django.contrib.auth import get_user_model
-
 from django.db import models
+from django.db.models import JSONField
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 
 class Room(models.Model):
-    name = models.CharField(max_length=128, blank=True)
-    # online = models.ManyToManyField(to=User, blank=True)
-    secret_code = models.CharField(max_length=6, blank=True)
+    name = models.CharField(max_length=128, unique=True, blank=True)
+
+    ########## TODO: deprecate, store them in game_state
+    secret_code = models.CharField(max_length=30, blank=True)
     code_length = models.IntegerField(default=4, blank=True)
     num_of_colors = models.IntegerField(default=6, blank=True)
     num_of_guesses = models.IntegerField(default=10, blank=True)
-    type = models.IntegerField(default=0)  # 0 = singleplayer, 1 = multiplayer
+    game_type = models.IntegerField(
+        default=0
+    )  # 0 = singleplayer, 1 = multiplayer, 2 =multiplayer (single board)
+    ##########
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    active_users = models.ManyToManyField(User, related_name="active_rooms", blank=True)
+    game_state = JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
         if not self.name:
             next_id = Room.objects.count() + 1
             self.name = f"room_{next_id}"
+        super().save(*args, **kwargs)
 
-    def get_online_count(self):
-        return self.online.count()
+    def initialize_game(self):
+        from bncpy.bnc.utils import get_random_number
+        from bncpy.bnc import GameConfig, GameState
 
-    def join(self, user):
-        self.online.add(user)
+        if not self.secret_code:
+            self.secret_code = get_random_number(
+                number=self.code_length, maximum=self.num_of_colors
+            )
+
+        config = GameConfig(
+            code_length=self.code_length,
+            num_of_colors=self.num_of_colors,
+            num_of_guesses=self.num_of_guesses,
+            secret_code=self.secret_code,
+        )
+
+        game_state = GameState(config=config)
+
+        self.game_state = game_state.to_dict()
         self.save()
-
-    def leave(self, user):
-        self.online.remove(user)
-        self.save()
-
-    def __str__(self):
-        return f"{self.name} ({self.get_online_count()})"
 
 
 class Message(models.Model):

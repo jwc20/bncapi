@@ -19,6 +19,8 @@ autobahn==24.4.2
     # via daphne
 automat==25.4.16
     # via twisted
+brotli==1.1.0
+    # via whitenoise
 certifi==2025.8.3
     # via
     #   httpcore
@@ -37,7 +39,6 @@ constantly==23.10.4
     # via twisted
 cryptography==45.0.6
     # via
-    #   bncapi (pyproject.toml)
     #   autobahn
     #   pyopenssl
     #   service-identity
@@ -93,6 +94,8 @@ idna==3.10
     #   twisted
 incremental==24.7.2
     # via twisted
+jsonpickle==4.1.1
+    # via bncapi (pyproject.toml)
 msgpack==1.1.1
     # via channels-redis
 packaging==25.0
@@ -107,6 +110,8 @@ pyasn1-modules==0.4.2
     # via service-identity
 pycparser==2.22
     # via cffi
+pycryptodome==3.23.0
+    # via bncapi (pyproject.toml)
 pydantic==2.11.7
     # via
     #   bncapi (pyproject.toml)
@@ -115,8 +120,12 @@ pydantic-core==2.33.2
     # via pydantic
 pyopenssl==25.1.0
     # via twisted
+python-dotenv==1.1.1
+    # via bncapi (pyproject.toml)
 redis==6.3.0
     # via channels-redis
+schedule==1.2.2
+    # via bncapi (pyproject.toml)
 service-identity==24.2.0
     # via twisted
 setuptools==80.9.0
@@ -145,6 +154,8 @@ typing-extensions==4.14.1
 typing-inspection==0.4.1
     # via pydantic
 uvicorn==0.35.0
+    # via bncapi (pyproject.toml)
+whitenoise==6.9.0
     # via bncapi (pyproject.toml)
 zope-interface==7.2
     # via twisted

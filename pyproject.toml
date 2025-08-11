@@ -7,7 +7,6 @@ requires-python = ">=3.12"
 dependencies = [
     "django-ninja>=1.4.3",
     "django-cors-headers>=4.7.0",
-    "cryptography>=45.0.6",
     "django-activity-stream>=2.0.0",
     "djangorestframework>=3.16.0",
     "pydantic[email]>=2.11.7",
@@ -19,6 +18,11 @@ dependencies = [
     "gunicorn>=23.0.0",
     "dj-database-url>=3.0.1",
     "uvicorn>=0.35.0",
+    "whitenoise[brotli]>=6.9.0",
+    "jsonpickle>=4.1.1",
+    "schedule>=1.2.2",
+    "python-dotenv>=1.1.1",
+    "pycryptodome>=3.23.0",
 ]
 
 [project.optional-dependencies]
@@ -60,6 +64,7 @@ exclude = [
     "dist",
     "node_modules",
     "site-packages",
+    "scripts",
 ]
 
 line-length = 88

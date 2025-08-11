@@ -8,6 +8,10 @@ api = NinjaAPI(
     auth=TokenAuthentication(), docs=Swagger(settings={"persistAuthorization": True})
 )
 
+@api.get("/ping", auth=None)
+def ping(request):
+    return {"message": "pong"}
+
 api.add_router("/users", user_router)
 api.add_router("/auth", auth_router)
 api.add_router("/games", game_router)

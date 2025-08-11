@@ -67,7 +67,7 @@ def list_rooms(request):
             "num_of_guesses": room.num_of_guesses,
             "secret_code": room.secret_code,
         }
-        for room in Room.objects.all()
+        for room in Room.objects.all().order_by("id").reverse()
     ]
 
 

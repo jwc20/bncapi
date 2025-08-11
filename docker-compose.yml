@@ -42,7 +42,7 @@ services:
       POSTGRES_HOST: db
       POSTGRES_PORT: ${POSTGRES_PORT}
       PUBLIC_API_URL: ${PUBLIC_API_URL}
-      PUBLIC_API_KEY: ${PUBLIC_API_KEY}
+      PUBLIC_API_KEY: ${SECRET_KEY}
       PING_ENDPOINT: ${PING_ENDPOINT}
     networks:
       - app-network

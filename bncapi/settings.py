@@ -2,13 +2,14 @@ from pathlib import Path
 from django.utils import timezone
 from corsheaders.defaults import default_headers
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# TODO
-SECRET_KEY = "secret"
-DEBUG = True
+SECRET_KEY = os.getenv("SECRET_KEY", "secret")
+DEBUG = os.getenv("DEBUG", "True").lower()
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost", "bncapi.onrender.com", "0.0.0.0"]
 
@@ -157,14 +158,16 @@ DATABASES = {
         "USER": os.getenv("POSTGRES_USER", "postgres"),
         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
         "HOST": os.getenv("POSTGRES_HOST", "0.0.0.0"),
-        "PORT": os.getenv("POSTGRES_PORT", 5432),
+        "PORT": int(os.getenv("POSTGRES_PORT", 5432)),
     }
 }
 
-# sqlite
+# sqlite (commented out - use for local development if needed)
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.sqlite3",
 #         "NAME": BASE_DIR / "db.sqlite3",
 #     }
 # }
+
+PUBLIC_API_URL = os.getenv("PUBLIC_API_URL", "http://127.0.0.1:8000/api")

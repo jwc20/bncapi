@@ -1,4 +1,6 @@
 from pathlib import Path
+
+import dj_database_url
 from django.utils import timezone
 from corsheaders.defaults import default_headers
 import os
@@ -153,15 +155,23 @@ CHANNEL_LAYERS = {
 
 # postgres
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB", "postgres"),
-        "USER": os.getenv("POSTGRES_USER", "postgres"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
-        "HOST": os.getenv("POSTGRES_HOST", "0.0.0.0"),
-        "PORT": int(os.getenv("POSTGRES_PORT", 5432)),
-    }
+    "default": dj_database_url.parse(
+        os.getenv(
+            "POSTGRES_DATABASE_URL",
+            "postgresql://postgres:postgres@0.0.0.0:5432/postgres",
+        )
+    )
 }
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql",
+#         "NAME": os.getenv("POSTGRES_DB", "postgres"),
+#         "USER": os.getenv("POSTGRES_USER", "postgres"),
+#         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
+#         "HOST": os.getenv("POSTGRES_HOST", "0.0.0.0"),
+#         "PORT": int(os.getenv("POSTGRES_PORT", 5432)),
+#     }
+# }
 
 # sqlite (commented out - use for local development if needed)
 # DATABASES = {

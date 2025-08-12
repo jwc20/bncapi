@@ -138,40 +138,47 @@ CORS_ALLOW_CREDENTIALS = True
 
 # for django-channels
 ASGI_APPLICATION = "bncapi.asgi.application"
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            # "hosts": [
-            #     (
-            #         os.getenv("REDIS_HOST", "0.0.0.0"),
-            #         int(os.getenv("REDIS_PORT", 6379)),
-            #     )
-            # ],
-            "hosts": [os.environ.get("REDIS_CHANNEL_LAYER_URL")],
-        },
-    },
-}
 
+REDIS_CHANNEL_LAYER_URL = os.environ.get("REDIS_CHANNEL_LAYER_URL")
+if REDIS_CHANNEL_LAYER_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": REDIS_CHANNEL_LAYER_URL,
+            },
+        },
+    }
+
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [
+                    (
+                        os.getenv("REDIS_HOST", "0.0.0.0"),
+                        int(os.getenv("REDIS_PORT", 6379)),
+                    )
+                ],
+            },
+        },
+    }
 # postgres
-DATABASES = {
-    "default": dj_database_url.parse(
-        os.getenv(
-            "POSTGRES_DATABASE_URL",
-            "postgresql://postgres:postgres@0.0.0.0:5432/postgres",
-        )
-    )
-}
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": os.getenv("POSTGRES_DB", "postgres"),
-#         "USER": os.getenv("POSTGRES_USER", "postgres"),
-#         "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
-#         "HOST": os.getenv("POSTGRES_HOST", "0.0.0.0"),
-#         "PORT": int(os.getenv("POSTGRES_PORT", 5432)),
-#     }
-# }
+POSTGRES_DATABASE_URL = os.getenv("POSTGRES_DATABASE_URL")
+if POSTGRES_DATABASE_URL:
+    DATABASES = {"default": dj_database_url.parse(POSTGRES_DATABASE_URL)}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.getenv("POSTGRES_DB", "postgres"),
+            "USER": os.getenv("POSTGRES_USER", "postgres"),
+            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
+            "HOST": os.getenv("POSTGRES_HOST", "0.0.0.0"),
+            "PORT": int(os.getenv("POSTGRES_PORT", 5432)),
+        }
+    }
 
 # sqlite (commented out - use for local development if needed)
 # DATABASES = {

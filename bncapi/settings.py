@@ -145,7 +145,7 @@ if REDIS_CHANNEL_LAYER_URL:
         "default": {
             "BACKEND": "channels_redis.core.RedisChannelLayer",
             "CONFIG": {
-                "hosts": REDIS_CHANNEL_LAYER_URL,
+                "hosts": [REDIS_CHANNEL_LAYER_URL],
             },
         },
     }

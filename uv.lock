@@ -101,7 +101,6 @@ dependencies = [
     { name = "django-activity-stream" },
     { name = "django-cors-headers" },
     { name = "django-ninja" },
-    { name = "django-silk" },
     { name = "djangorestframework" },
     { name = "gunicorn" },
     { name = "httpx" },
@@ -137,7 +136,6 @@ requires-dist = [
     { name = "django-activity-stream", specifier = ">=2.0.0" },
     { name = "django-cors-headers", specifier = ">=4.7.0" },
     { name = "django-ninja", specifier = ">=1.4.3" },
-    { name = "django-silk", specifier = ">=5.4.0" },
     { name = "djangorestframework", specifier = ">=3.16.0" },
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "httpx", specifier = ">=0.28.1" },
@@ -463,20 +461,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-silk"
-version = "5.4.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "gprof2dot" },
-    { name = "sqlparse" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/70/9d/b638031cc89ce79cc1d46f27c3a5cc6c2e6aaedab4be6f8238d51c08c58f/django_silk-5.4.0.tar.gz", hash = "sha256:2247870ac8080b6c6c5db17f2f1042d39d95e4a5fa061d661882777ec9adb672", size = 4494394 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/3e/fc/ad0f20a97d56e36c6bd7c785b7e158be5b78597665a9312d3de7c7d672e2/django_silk-5.4.0-py3-none-any.whl", hash = "sha256:caf720a06e24a6cf1acf825c1868b2a6ece8158b13725363f6d3a1a9994d0fa6", size = 1944115 },
-]
-
-[[package]]
 name = "djangorestframework"
 version = "3.16.0"
 source = { registry = "https://pypi.org/simple" }
@@ -517,15 +501,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/48/ce/13508a1ec3f8bb981ae4ca79ea40384becc868bfae97fd1c942bb3a001b1/email_validator-2.2.0.tar.gz", hash = "sha256:cb690f344c617a714f22e66ae771445a1ceb46821152df8e165c5f9a364582b7", size = 48967 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d7/ee/bf0adb559ad3c786f12bcbc9296b3f5675f529199bef03e2df281fa1fadb/email_validator-2.2.0-py3-none-any.whl", hash = "sha256:561977c2d73ce3611850a06fa56b414621e0c8faa9d66f2611407d87465da631", size = 33521 },
-]
-
-[[package]]
-name = "gprof2dot"
-version = "2025.4.14"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bb/fd/cad13fa1f7a463a607176432c4affa33ea162f02f58cc36de1d40d3e6b48/gprof2dot-2025.4.14.tar.gz", hash = "sha256:35743e2d2ca027bf48fa7cba37021aaf4a27beeae1ae8e05a50b55f1f921a6ce", size = 39536 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/71/ed/89d760cb25279109b89eb52975a7b5479700d3114a2421ce735bfb2e7513/gprof2dot-2025.4.14-py3-none-any.whl", hash = "sha256:0742e4c0b4409a5e8777e739388a11e1ed3750be86895655312ea7c20bd0090e", size = 37555 },
 ]
 
 [[package]]

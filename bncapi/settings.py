@@ -13,7 +13,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("SECRET_KEY", "secret")
 DEBUG = os.getenv("DEBUG", "True").lower()
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "bncapi.onrender.com", "0.0.0.0"]
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "bncapi.onrender.com",
+    "0.0.0.0",
+]
 
 INSTALLED_APPS = [
     "daphne",
@@ -26,7 +31,6 @@ INSTALLED_APPS = [
     # third party apps
     "corsheaders",
     "ninja",
-    "silk",
     "channels",
     # custom apps
     "knoxtokens",
@@ -47,7 +51,6 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "silk.middleware.SilkyMiddleware",
 ]
 
 ROOT_URLCONF = "bncapi.urls"
@@ -133,6 +136,8 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
     "token",
     "api-key",
 ]
+
+
 # allow all credentials
 CORS_ALLOW_CREDENTIALS = True
 

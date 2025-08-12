@@ -1,15 +1,24 @@
-FROM python:3.12-alpine
+FROM python:3.12-slim
 
-WORKDIR /app
+# set working directory
+WORKDIR /usr/src/app
 
-RUN apk add --no-cache build-base netcat-openbsd
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-COPY requirements.txt /app/
+# install system dependencies
+RUN apt-get update \
+  && apt-get -y install netcat-traditional \
+  && apt-get clean
+
+# install dependencies
 RUN pip install --upgrade pip
+COPY ./requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY . /app/
+# add app
+COPY . .
 
-EXPOSE 8000
-
+# run server
 CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "bncapi.asgi:application"]

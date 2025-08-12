@@ -10,7 +10,6 @@ dependencies = [
     "django-activity-stream>=2.0.0",
     "djangorestframework>=3.16.0",
     "pydantic[email]>=2.11.7",
-    "django-silk>=5.4.0",
     "channels[daphne]>=4.3.1",
     "channels-redis>=4.3.0",
     "psycopg2-binary>=2.9.10",

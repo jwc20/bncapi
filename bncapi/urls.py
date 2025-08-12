@@ -8,5 +8,4 @@ urlpatterns = [
     path("api/", api.urls),
 ]
 
-urlpatterns += [path("silk/", include("silk.urls", namespace="silk"))]
 urlpatterns += [*games_ws]

@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# Setup production database
-echo "Setting up production database..."
+# Setup development database
+echo "Setting up development database..."
 
 # Create databases
-docker compose -f docker-compose.yml exec api-db psql -U postgres -c "CREATE DATABASE bncapi_dev;"
-# docker compose -f docker-compose.prod.yml exec api-db psql -U postgres -c "CREATE DATABASE bncapi_test;"
+docker exec -it api-db psql -U postgres -c "CREATE DATABASE bncapi_dev;"
+docker exec -it api-db psql -U postgres -c "CREATE DATABASE bncapi_test;"
 
 echo "Databases created successfully!"
 
 # Run Django migrations
 echo "Running Django migrations..."
-docker compose -f docker-compose.yml exec api python manage.py migrate
+docker exec -it bncapi-container python manage.py migrate
 
-echo "Production database setup complete!"
+echo "Development database setup complete!"

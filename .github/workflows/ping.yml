@@ -22,4 +22,4 @@ jobs:
         pip install schedule requests
     
     - name: Run Ping Script
-      run: python scripts/ping.py
+      run: python ping.py

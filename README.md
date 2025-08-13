@@ -44,7 +44,7 @@ Access the Swagger OpenApi on http://0.0.0.0:8000/api/docs.
 
 This project uses [custom knox token django app](https://github.com/jwc20/knoxtokens) tailored for Django-Ninja.
 Knox gives you the same easy server-side control over logins that sessions do, but without storing tokens in plaintext like DRF’s default auth. 
-Unlike JWTs, which are tricky to revoke once they’re out in the wild, Knox keeps only a hashed version on the server(database) so you can kill a single device’s login—or all of them—instantly. 
+Unlike JWTs, which are tricky to revoke once they’re out in the wild, Knox keeps only a hashed version on the server(database) so you can kill a single device’s login or all of them instantly. 
 It’s a great fit for APIs that need secure, multi-device logins without the headache of managing JWT blacklists or heavy session state.
 Since Knox tokens are stored in a securely hashed form, even if someone gets access to the database, they can’t use the stored token to log in.
 

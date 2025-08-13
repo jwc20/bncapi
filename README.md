@@ -4,7 +4,7 @@ Backend Api for Benjamin and Charlotte game.
 
 Mono-repo: https://github.com/jwc20/bnc-game
 
-Docs: https://github.com/jwc20/bnc-docs
+Docs: [https://github.com/jwc20/bnc-docs](https://jwc20.github.io/bnc-docs/)
 
 
 ## Quick Start

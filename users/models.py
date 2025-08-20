@@ -50,3 +50,6 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = "email"
 
     objects = UserManager()
+
+    def __str__(self) -> str:
+        return super().__str__()

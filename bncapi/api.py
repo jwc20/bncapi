@@ -15,3 +15,6 @@ def ping(request):
 api.add_router("/users", user_router)
 api.add_router("/auth", auth_router)
 api.add_router("/games", game_router)
+
+
+

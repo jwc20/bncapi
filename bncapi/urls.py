@@ -7,5 +7,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", api.urls),
 ]
-
+urlpatterns += [path("activity/", include("actstream.urls"))]
 urlpatterns += [*games_ws]
+

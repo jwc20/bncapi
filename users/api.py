@@ -1,53 +1,28 @@
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from ninja import Router, Schema
+from ninja import Router
 from ninja.errors import HttpError
 from typing import List
 from actstream import action
 import json
 
 from .utils import CustomerAccountHandler
-from pydantic import EmailStr
-from datetime import datetime
 from knoxtokens.models import KnoxToken
 from bncapi.settings import TOKEN_KEY_LENGTH
+
+from .schemas import (
+    UserSchema,
+    MeResponse,
+    AuthResponse,
+    UserCreate,
+    UserLogin,
+)
 
 User = get_user_model()
 
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-class UserSchema(Schema):
-    email: EmailStr
-
-
-class UserCreate(UserSchema):
-    username: str
-    password: str
-
-
-class UserLogin(UserSchema):
-    password: str
-
-
-class UserResponse(Schema):
-    id: int
-    email: str
-    username: str
-
-
-class AuthResponse(Schema):
-    token: str
-    username: str
-    expiry: datetime
-
-
-class MeResponse(Schema):
-    id: int
-    email: str
-    username: str
 
 
 user_router = Router(tags=["Users"])
@@ -59,40 +34,19 @@ def me(request):
     user, token = request.auth
     if not user or not user.is_authenticated:
         raise HttpError(401, "Unauthorized")
-
-    return UserResponse(id=user.id, email=user.email, username=user.username)
-
-
-# def me(request):
-# user = request.user
-# return {
-#     "id": user.id,
-#     "email": user.email,
-#     "username": user.username,
-# }
+    return MeResponse.from_orm(user)
 
 
-@user_router.get("/", response=List[UserResponse], summary="List all users")
+@user_router.get("/", response=List[UserSchema], summary="List all users")
 def list_users(request):
-    return [
-        UserResponse(
-            id=user.id,
-            email=user.email,
-            username=user.username,
-        )
-        for user in User.objects.all()
-    ]
+    return [UserSchema.from_orm(user) for user in User.objects.all()]
 
 
-@user_router.get("/{user_id}", response=UserResponse, summary="Get user by ID")
+@user_router.get("/{user_id}", response=UserSchema, summary="Get user by ID")
 def get_user(request, user_id: int):
     try:
         user = User.objects.get(id=user_id)
-        return UserResponse(
-            id=user.id,
-            email=user.email,
-            username=user.username,
-        )
+        return UserSchema.from_orm(user)
     except User.DoesNotExist:
         raise HttpError(404, "User not found")
 

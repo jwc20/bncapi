@@ -69,7 +69,7 @@ def list_rooms(request):
 
 @game_router.post("/rooms", response=RoomSchema, summary="Create a new room")
 def create_room(request, data: CreateRoomRequest):
-    from bncpy.bnc.utils import get_random_sequence
+    from bncpy.bnc.utils import get_random_number
     from actstream import action
     from django.core.exceptions import ValidationError
     from django.db import IntegrityError
@@ -80,7 +80,7 @@ def create_room(request, data: CreateRoomRequest):
     _user = request.auth[0]
     validated_data = data.dict()
 
-    validated_data["secret_code"] = get_random_sequence(
+    validated_data["secret_code"] = get_random_number(
         length=validated_data["code_length"],
         max_value=validated_data["num_of_colors"],
     )

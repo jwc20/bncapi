@@ -151,7 +151,23 @@ def signup(request, data: UserCreate):
         user, token_info = CustomerAccountHandler(**validated_data).email_signup()
         token = token_info["token_value"]
         expiry = token_info["expiry"]
+        
+        user_dict = {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+        }
 
+        user_json = json.dumps(user_dict)
+        request.session["user"] = user_json
+
+        action.send(
+            user,
+            verb='registered',
+            action_object=user,
+            data=user_dict
+        )
+        
         return {
             "username": user.username,
             "token": token,

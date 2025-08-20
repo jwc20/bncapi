@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from ninja import Router, Schema
@@ -68,6 +70,7 @@ def list_rooms(request):
 @game_router.post("/rooms", response=RoomSchema, summary="Create a new room")
 def create_room(request, data: CreateRoomRequest):
     from bncpy.bnc.utils import get_random_number
+    from actstream import action
 
     validated_data = data.dict()
     validated_data["secret_code"] = get_random_number(
@@ -76,7 +79,15 @@ def create_room(request, data: CreateRoomRequest):
     )
     try:
         room = Room.objects.create(**validated_data)
-        return {
+        _user = request.auth[0]
+        user_dict = {
+            "id": _user.id,
+            "email": _user.email,
+            "username": _user.username,
+        }
+        user_json = json.dumps(user_dict)
+        request.session["user"] = user_json
+        created_room = {
             "id": room.id,
             "name": room.name,
             "game_type": room.game_type,
@@ -85,6 +96,10 @@ def create_room(request, data: CreateRoomRequest):
             "num_of_guesses": room.num_of_guesses,
             "secret_code": room.secret_code,
         }
+        action.send(
+            _user, verb="created room", target=room, data=json.dumps(created_room)
+        )
+        return RoomSchema(**created_room)
     except Exception as e:
         logger.error(f"Room creation error: {e}")
         raise HttpError(400, "Room creation failed")

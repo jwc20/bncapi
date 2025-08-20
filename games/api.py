@@ -1,7 +1,7 @@
 import json
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from ninja import Router, Schema
+from ninja import Router
 from ninja.errors import HttpError
 from .models import Room
 from .schemas import RoomSchema

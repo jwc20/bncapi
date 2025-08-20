@@ -69,40 +69,50 @@ def list_rooms(request):
 
 @game_router.post("/rooms", response=RoomSchema, summary="Create a new room")
 def create_room(request, data: CreateRoomRequest):
-    from bncpy.bnc.utils import get_random_number
+    from bncpy.bnc.utils import get_random_sequence
     from actstream import action
+    from django.core.exceptions import ValidationError
+    from django.db import IntegrityError
 
+    if not request.auth or len(request.auth) < 1:
+        raise HttpError(401, "Authentication required")
+
+    _user = request.auth[0]
     validated_data = data.dict()
-    validated_data["secret_code"] = get_random_number(
+
+    validated_data["secret_code"] = get_random_sequence(
         length=validated_data["code_length"],
         max_value=validated_data["num_of_colors"],
     )
+
     try:
         room = Room.objects.create(**validated_data)
-        _user = request.auth[0]
-        user_dict = {
-            "id": _user.id,
-            "email": _user.email,
-            "username": _user.username,
-        }
-        user_json = json.dumps(user_dict)
-        request.session["user"] = user_json
-        created_room = {
+
+        if hasattr(request, "session"):
+            request.session["user"] = {
+                "id": _user.id,
+                "email": _user.email,
+                "username": _user.username,
+            }
+
+        log_data = {
             "id": room.id,
             "name": room.name,
             "game_type": room.game_type,
-            "code_length": room.code_length,
-            "num_of_colors": room.num_of_colors,
-            "num_of_guesses": room.num_of_guesses,
-            "secret_code": room.secret_code,
         }
-        action.send(
-            _user, verb="created room", target=room, data=json.dumps(created_room)
-        )
-        return RoomSchema(**created_room)
+        action.send(_user, verb="created room", target=room, data=json.dumps(log_data))
+
+        return RoomSchema.from_orm(room)
+
+    except ValidationError as e:
+        logger.error(f"Room creation validation error: {e}")
+        raise HttpError(400, "Invalid room configuration")
+    except IntegrityError as e:
+        logger.error(f"Room creation integrity error: {e}")
+        raise HttpError(409, "Room with this configuration already exists")
     except Exception as e:
-        logger.error(f"Room creation error: {e}")
-        raise HttpError(400, "Room creation failed")
+        logger.error(f"Unexpected room creation error: {e}")
+        raise HttpError(500, "Internal server error")
 
 
 @game_router.get("/rooms/{room_id}", response=RoomSchema, summary="Get room by ID")

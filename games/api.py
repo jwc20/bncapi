@@ -115,7 +115,15 @@ def create_room(request, data: CreateRoomRequest):
         raise HttpError(500, "Internal server error")
 
 
-@game_router.get("/rooms/{room_id}", response=RoomSchema, summary="Get room by ID")
+######################################################################################
+## deprecated ########################################################################
+######################################################################################
+@game_router.get(
+    "/rooms/{room_id}",
+    response=RoomSchema,
+    summary="Get room by ID",
+    deprecated=True,
+)
 def get_room(request, room_id: int):
     try:
         room = Room.objects.get(id=room_id)

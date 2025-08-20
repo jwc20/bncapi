@@ -2,12 +2,6 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from ninja import Router, Schema
 from ninja.errors import HttpError
-
-# from typing import List
-# from datetime import datetime
-# from knoxtokens.auth import TokenAuthentication
-# from django.contrib.auth import authenticate
-
 from .models import Room
 
 User = get_user_model()
@@ -116,11 +110,12 @@ def get_room(request, room_id: int):
         raise HttpError(400, "Room retrieval failed")
 
 
-# TODO: deprecate
+# deprecated
 @game_router.post(
     "/quick-play",
     response=RoomSchema,
     summary="Create a new singleplayer room with random secret code",
+    deprecated=True,
 )
 def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomRequest):
     try:
@@ -145,11 +140,12 @@ def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomR
         raise HttpError(400, "Room creation failed")
 
 
-# TODO: deprecate
+# deprecated
 @game_router.post(
     "/check",
     response=CheckBullsCowsResponse,
     summary="Check guess for bulls and cows",
+    deprecated=True,
 )
 def check_game(request, data: CheckBullsCowsRequest):
     # TODO: replace naive solution, use Game, Player, Board classes

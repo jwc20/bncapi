@@ -1,13 +1,10 @@
-from datetime import datetime
-
 from actstream.models import Action
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from ninja import Router, FilterSchema, Query, Schema
+from ninja import Router, Query
 from ninja.errors import HttpError
 from typing import List
 from actstream import action
-from django.http import JsonResponse
 import json
 
 from .utils import CustomerAccountHandler
@@ -20,6 +17,8 @@ from .schemas import (
     AuthResponse,
     UserCreate,
     UserLogin,
+    ActivityFilterSchema,
+    ActivityResponseSchema,
 )
 
 User = get_user_model()
@@ -33,31 +32,14 @@ user_router = Router(tags=["Users"])
 auth_router = Router(tags=["Authentication"], auth=None)
 
 
-class ActivityFilterSchema(FilterSchema):
-    actor_object_id: int | None = None
-    verb: str | None = None
-    action_object_object_id: int | None = None
-    timestamp: datetime | None = None
-
-
-class ActivityResponseSchema(Schema):
-    id: int
-    verb: str
-    timestamp: datetime
-    actor_object_id: int | None
-    action_object_object_id: int | None
-    target_object_id: int | None
-
-
-# get user and user's activities from actstream
 @user_router.get(
     "/activities",
     response=list[ActivityResponseSchema],
     summary="Get user and user's activities",
 )
 def get_user_activities(request, filters: Query[ActivityFilterSchema] = None):
+    # get user and user's activities from actstream
     try:
-
         stream = Action.objects.all()
 
         if filters:
@@ -74,28 +56,42 @@ def get_user_activities(request, filters: Query[ActivityFilterSchema] = None):
             )
         )
 
-        return [
-            ActivityResponseSchema(
-                id=activity["id"],
-                verb=activity["verb"],
-                timestamp=activity["timestamp"],
-                actor_object_id=activity["actor_object_id"],
-                action_object_object_id=activity["action_object_object_id"],
-                target_object_id=activity["target_object_id"],
-            )
-            for activity in activities
-        ]
+        return [ActivityResponseSchema.model_validate(a) for a in activities]
 
     except User.DoesNotExist:
         raise HttpError(404, "User not found")
 
 
-@user_router.get("/me", response=MeResponse, summary="Get current user")
+@user_router.get("/me", summary="Get current user")
 def me(request):
     user, token = request.auth
     if not user or not user.is_authenticated:
         raise HttpError(401, "Unauthorized")
-    return MeResponse.from_orm(user)
+
+    user_dict = UserSchema.from_orm(user)
+
+    stream = Action.objects.all()
+    stream = stream.filter(actor_object_id=user.id)
+    activities = list(
+        stream.values(
+            "id",
+            "verb",
+            "timestamp",
+            "actor_object_id",
+            "action_object_object_id",
+            "target_object_id",
+        )
+    )
+    return MeResponse.model_validate(
+        {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "activities": [
+                ActivityResponseSchema.model_validate(a) for a in activities
+            ],
+        }
+    )
 
 
 @user_router.get("/", response=List[UserSchema], summary="List all users")

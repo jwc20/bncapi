@@ -1,7 +1,6 @@
-from actstream import action
-from actstream.models import Action
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth import get_user_model
+from .utils import log_user_action
 
 User = get_user_model()
 
@@ -12,8 +11,6 @@ import json
 import logging
 from django.conf import settings
 from channels.db import database_sync_to_async
-from knoxtokens.models import KnoxToken
-from django.contrib.auth.models import User
 from urllib.parse import parse_qs
 
 TOKEN_KEY_LENGTH = getattr(settings, "TOKEN_KEY_LENGTH", 8)
@@ -78,7 +75,9 @@ class GameConsumer(AsyncWebsocketConsumer):
 
             logger.info(f"Player {self.token[:8]}... connected to room {self.room_id}")
 
-            await self._log_user_action()
+            await log_user_action(
+                token=self.token, room=self.room, user_action="joined room"
+            )
 
             await self.send(
                 text_data=json.dumps({"type": "update", "state": game_state})
@@ -107,6 +106,10 @@ class GameConsumer(AsyncWebsocketConsumer):
                 {"token": self.token},
             )
 
+            await log_user_action(
+                token=self.token, room=self.room, user_action="left_room"
+            )
+
         if self.room_group_name:
             await self.channel_layer.group_discard(
                 self.room_group_name, self.channel_name
@@ -125,6 +128,10 @@ class GameConsumer(AsyncWebsocketConsumer):
                     self.room_id,
                     payload,
                     {"token": self.token},
+                )
+
+                await log_user_action(
+                    token=self.token, room=self.room, user_action="guessed_code"
                 )
 
                 if "error" in game_state:
@@ -167,40 +174,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"type": "error", "message": str(e)}))
 
     async def game_update(self, event):
+        # use from the client
         await self.send(
             text_data=json.dumps({"type": "update", "state": event["state"]})
         )
-
-    async def _log_user_action(self):
-        try:
-            token = await database_sync_to_async(
-                KnoxToken.objects.select_related("user").get
-            )(token_key=self.token[:TOKEN_KEY_LENGTH])
-            user = token.user
-
-            try:
-                await database_sync_to_async(Action.objects.get)(
-                    actor_object_id=user.id,
-                    verb="joined room",
-                    action_object_object_id=self.room.id,
-                )
-            except Action.DoesNotExist:
-                await database_sync_to_async(action.send)(
-                    user,
-                    verb="joined room",
-                    action_object=self.room,
-                )
-                logger.info(
-                    f"Created action log for user {user.id} joining room {self.room.id}"
-                )
-
-        except KnoxToken.DoesNotExist:
-            logger.debug(f"Anonymous connection with token {self.token[:8]}...")
-        except User.DoesNotExist:
-            logger.warning(
-                f"Knox token exists but user not found for token {self.token[:8]}..."
-            )
-        except Exception as e:
-            logger.error(
-                f"Error logging user action: {type(e).__name__}: {e}", exc_info=True
-            )

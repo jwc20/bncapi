@@ -1,9 +1,11 @@
 from actstream import action
 from channels.db import database_sync_to_async
+from docutils.nodes import description
 
 from bncapi.settings import TOKEN_KEY_LENGTH
 from knoxtokens.models import KnoxToken
 from .models import Room
+from .utils import log_user_action
 from bncpy.bnc import GameState, GameConfig
 import logging
 
@@ -77,16 +79,17 @@ class GameService:
         # record game won with actstream
         if state.game_won and len(state.winners) > 0:
             try:
-                user_token = KnoxToken.objects.get(
-                    token_key=player_token[:TOKEN_KEY_LENGTH]
-                )
-                user = user_token.user
-                action.send(
-                    user,
-                    verb="won game",
-                    action_object=room,
-                    data=state.to_dict(),
-                )
+                log_user_action(token=player_token, room=room, user_action="won_game")
+                # user_token = KnoxToken.objects.get(
+                #     token_key=player_token[:TOKEN_KEY_LENGTH]
+                # )
+                # user = user_token.user
+                # action.send(
+                #     user,
+                #     verb="won game",
+                #     action_object=room,
+                #     data=state.to_dict(),
+                # )
             except KnoxToken.DoesNotExist:
                 logger.warning(
                     f"Knox token exists but user not found for token {player_token[:8]}..."

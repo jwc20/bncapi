@@ -70,10 +70,6 @@ class GameService:
         player_token = player_info.get("token") if player_info else "Anonymous"
         result = state.submit_guess(player_token, guess)
 
-        # record game won with actstream
-        # if state.game_won and len(state.winners) > 0:
-        #     log_game_won(token=player_token, room=room, user_action="won_game")
-
         if "error" in result:
             return result
 

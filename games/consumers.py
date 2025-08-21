@@ -1,6 +1,6 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.contrib.auth import get_user_model
-from .utils import log_user_action
+from .utils import log_user_action_async
 
 User = get_user_model()
 
@@ -75,8 +75,8 @@ class GameConsumer(AsyncWebsocketConsumer):
 
             logger.info(f"Player {self.token[:8]}... connected to room {self.room_id}")
 
-            await log_user_action(
-                token=self.token, room=self.room, user_action="joined room"
+            await log_user_action_async(
+                token=self.token, room=self.room, user_action="joined_room"
             )
 
             await self.send(
@@ -106,7 +106,7 @@ class GameConsumer(AsyncWebsocketConsumer):
                 {"token": self.token},
             )
 
-            await log_user_action(
+            await log_user_action_async(
                 token=self.token, room=self.room, user_action="left_room"
             )
 
@@ -130,12 +130,15 @@ class GameConsumer(AsyncWebsocketConsumer):
                     {"token": self.token},
                 )
 
-                await log_user_action(
-                    token=self.token, room=self.room, user_action="guessed_code"
+                await log_user_action_async(
+                    token=self.token,
+                    room=self.room,
+                    user_action="guessed_code",
+                    data=payload,
                 )
 
                 if game_state.get("game_won"):
-                    await log_user_action(
+                    await log_user_action_async(
                         token=self.token, room=self.room, user_action="won_game"
                     )
 

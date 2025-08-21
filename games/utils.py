@@ -1,6 +1,7 @@
 from typing import Optional
 from enum import Enum
 
+import jsonpickle
 from actstream import action
 from actstream.models import Action
 from channels.db import database_sync_to_async
@@ -9,6 +10,7 @@ from django.db import IntegrityError
 from asgiref.sync import async_to_sync
 
 from bncapi.settings import TOKEN_KEY_LENGTH
+from games.models import Room
 from knoxtokens.models import KnoxToken
 import logging
 
@@ -33,6 +35,8 @@ def _validate_token(token: str) -> bool:
 
 
 def _get_action_description(user_action: str, room, user) -> Optional[str]:
+    if room is None or user is None:
+        return None
     descriptions = {
         UserAction.WON_GAME.value: f"Room {room.id} won by {user.username}",
         UserAction.JOINED_ROOM.value: f"{user.username} joined room {room.id}",
@@ -99,15 +103,28 @@ def _authenticate_user_sync(token: str) -> Optional[User]:
 
 
 async def _send_action_async(
-    user: User, user_action: str, room, description: Optional[str] = None
+    user: User,
+    user_action: str,
+    room,
+    description: str | None = None,
+    data: dict | None = None,
 ) -> bool:
     try:
-        await database_sync_to_async(action.send)(
-            user,
-            verb=user_action,
-            action_object=room,
-            description=description,
-        )
+        if data:
+            await database_sync_to_async(action.send)(
+                user,
+                verb=user_action,
+                target=room,
+                description=description,
+                data=jsonpickle.dumps(data),
+            )
+        else:
+            await database_sync_to_async(action.send)(
+                user,
+                verb=user_action,
+                action_object=room,
+                description=description,
+            )
         logger.debug(
             f"Action '{user_action}' sent for user {user.id} in room {room.id}"
         )
@@ -121,15 +138,30 @@ async def _send_action_async(
 
 
 def _send_action_sync(
-    user: User, user_action: str, room, description: Optional[str] = None
+    user: User,
+    user_action: str,
+    room,
+    description: str | None = None,
+    data: dict | None = None,
 ) -> bool:
     try:
-        action.send(
-            user,
-            verb=user_action,
-            target=room,
-            description=description,
-        )
+
+        if data:
+            action.send(
+                user,
+                verb=user_action,
+                target=room,
+                description=description,
+                data=jsonpickle.dumps(data),
+            )
+        else:
+            action.send(
+                user,
+                verb=user_action,
+                action_object=room,
+                description=description,
+            )
+
         logger.debug(
             f"Action '{user_action}' sent for user {user.id} in room {room.id}"
         )
@@ -142,9 +174,11 @@ def _send_action_sync(
         return False
 
 
-async def log_user_action(token: str, room, user_action: str) -> bool:
-    if not room or not user_action:
-        logger.error("Invalid parameters: room or user_action is None")
+async def log_user_action_async(
+    token: str, room, user_action: str, data: dict | None = None
+) -> bool:
+    if not user_action:
+        logger.error("Invalid parameters: user_action is None")
         return False
 
     user = await _authenticate_user_async(token)
@@ -152,4 +186,19 @@ async def log_user_action(token: str, room, user_action: str) -> bool:
         return False
 
     description = _get_action_description(user_action, room, user)
-    return await _send_action_async(user, user_action, room, description)
+    return await _send_action_async(user, user_action, room, description, data)
+
+
+def log_user_action_sync(
+    token: str, room: Room | None, user_action: str, data: dict | None
+) -> bool:
+    if not user_action:
+        logger.error("Invalid parameters: user_action is None")
+        return False
+
+    user = _authenticate_user_sync(token)
+    if not user:
+        return False
+
+    description = _get_action_description(user_action, room, user)
+    return _send_action_sync(user, user_action, room, description, data)

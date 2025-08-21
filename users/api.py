@@ -7,9 +7,9 @@ from typing import List
 from actstream import action
 import json
 
+from games.utils import log_user_action_sync
 from .utils import CustomerAccountHandler
 from knoxtokens.models import KnoxToken
-from bncapi.settings import TOKEN_KEY_LENGTH
 
 from .schemas import (
     UserSchema,
@@ -62,7 +62,7 @@ def get_user_activities(request, filters: Query[ActivityFilterSchema] = None):
         raise HttpError(404, "User not found")
 
 
-@user_router.get("/me", summary="Get current user")
+@user_router.get("/me", response=MeResponse, summary="Get current user")
 def me(request):
     user, token = request.auth
     if not user or not user.is_authenticated:
@@ -121,26 +121,36 @@ def login(request, data: UserLogin):
         token = token_info["token_value"]
         expiry = token_info["expiry"]
 
-        knox_token = KnoxToken.objects.select_related("user").get(
-            token_key=token[:TOKEN_KEY_LENGTH]
-        )
-        user_logged_in = knox_token.user
-
         user_dict = {
-            "id": user_logged_in.id,
-            "email": user_logged_in.email,
-            "username": user_logged_in.username,
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
         }
 
-        user_json = json.dumps(user_dict)
-        request.session["user"] = user_json
-
-        action.send(
-            user_logged_in,
-            verb="logged_in",
-            action_object=user_logged_in,
-            data=user_dict,
+        log_user_action_sync(
+            token=token, room=None, user_action="logged_in", data=user_dict
         )
+
+        # knox_token = KnoxToken.objects.select_related("user").get(
+        #     token_key=token[:TOKEN_KEY_LENGTH]
+        # )
+        # user_logged_in = knox_token.user
+        #
+        # user_dict = {
+        #     "id": user_logged_in.id,
+        #     "email": user_logged_in.email,
+        #     "username": user_logged_in.username,
+        # }
+        #
+        # user_json = json.dumps(user_dict)
+        # request.session["user"] = user_json
+        #
+        # action.send(
+        #     user_logged_in,
+        #     verb="logged_in",
+        #     action_object=user_logged_in,
+        #     data=user_dict,
+        # )
 
         return AuthResponse(
             token=token,

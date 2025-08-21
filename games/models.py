@@ -35,7 +35,7 @@ class Room(models.Model):
 
         if not self.secret_code:
             self.secret_code = get_random_number(
-                number=self.code_length, maximum=self.num_of_colors
+                length=self.code_length, max_value=self.num_of_colors
             )
 
         config = GameConfig(

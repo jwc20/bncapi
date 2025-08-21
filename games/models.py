@@ -5,6 +5,17 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 
+class Game(models.Model):
+    room = models.ForeignKey("Room", on_delete=models.CASCADE)
+    participants = models.JSONField(default=list)  # players who submitted a guess
+    game_state = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="created_games"
+    )
+
+
 class Room(models.Model):
     name = models.CharField(max_length=128, unique=True, blank=True)
 
@@ -16,12 +27,15 @@ class Room(models.Model):
     game_type = models.IntegerField(
         default=0
     )  # 0 = singleplayer, 1 = multiplayer, 2 =multiplayer (single board)
-    ##########
 
-    active_users = models.ManyToManyField(User, related_name="active_rooms", blank=True)
     game_state = JSONField(default=dict, blank=True)
+    ##################################################################################
+
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, related_name="created_rooms"
+    )
+    # updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
         if not self.name:
@@ -29,13 +43,18 @@ class Room(models.Model):
             self.name = f"room_{next_id}"
         super().save(*args, **kwargs)
 
+    def create_game(self):
+        game = Game(room=self)
+        game.save()
+        return game
+
     def initialize_game(self):
         from bncpy.bnc.utils import get_random_number
         from bncpy.bnc import GameConfig, GameState
 
         if not self.secret_code:
             self.secret_code = get_random_number(
-                number=self.code_length, maximum=self.num_of_colors
+                length=self.code_length, max_value=self.num_of_colors
             )
 
         config = GameConfig(

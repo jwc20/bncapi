@@ -1,9 +1,13 @@
+from datetime import datetime
+
+from actstream.models import Action
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from ninja import Router
+from ninja import Router, FilterSchema, Query, Schema
 from ninja.errors import HttpError
 from typing import List
 from actstream import action
+from django.http import JsonResponse
 import json
 
 from .utils import CustomerAccountHandler
@@ -29,6 +33,63 @@ user_router = Router(tags=["Users"])
 auth_router = Router(tags=["Authentication"], auth=None)
 
 
+class ActivityFilterSchema(FilterSchema):
+    actor_object_id: int | None = None
+    verb: str | None = None
+    action_object_object_id: int | None = None
+    timestamp: datetime | None = None
+
+
+class ActivityResponseSchema(Schema):
+    id: int
+    verb: str
+    timestamp: datetime
+    actor_object_id: int | None
+    action_object_object_id: int | None
+    target_object_id: int | None
+
+
+# get user and user's activities from actstream
+@user_router.get(
+    "/activities",
+    response=list[ActivityResponseSchema],
+    summary="Get user and user's activities",
+)
+def get_user_activities(request, filters: Query[ActivityFilterSchema] = None):
+    try:
+
+        stream = Action.objects.all()
+
+        if filters:
+            stream = filters.filter(stream)
+
+        activities = list(
+            stream.values(
+                "id",
+                "verb",
+                "timestamp",
+                "actor_object_id",
+                "action_object_object_id",
+                "target_object_id",
+            )
+        )
+
+        return [
+            ActivityResponseSchema(
+                id=activity["id"],
+                verb=activity["verb"],
+                timestamp=activity["timestamp"],
+                actor_object_id=activity["actor_object_id"],
+                action_object_object_id=activity["action_object_object_id"],
+                target_object_id=activity["target_object_id"],
+            )
+            for activity in activities
+        ]
+
+    except User.DoesNotExist:
+        raise HttpError(404, "User not found")
+
+
 @user_router.get("/me", response=MeResponse, summary="Get current user")
 def me(request):
     user, token = request.auth
@@ -49,6 +110,11 @@ def get_user(request, user_id: int):
         return UserSchema.from_orm(user)
     except User.DoesNotExist:
         raise HttpError(404, "User not found")
+
+
+######################################################################################
+## Authentication ####################################################################
+######################################################################################
 
 
 @auth_router.post("/login", response=AuthResponse, summary="Login user")

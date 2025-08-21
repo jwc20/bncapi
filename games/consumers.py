@@ -1,11 +1,17 @@
-import json
-import logging
-from urllib.parse import parse_qs
 from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
+from django.contrib.auth import get_user_model
+from .utils import log_user_action_async
+
+User = get_user_model()
+
 from .models import Room
 from .services import GameService
+import uuid
+import json
+import logging
 from django.conf import settings
+from channels.db import database_sync_to_async
+from urllib.parse import parse_qs
 
 TOKEN_KEY_LENGTH = getattr(settings, "TOKEN_KEY_LENGTH", 8)
 logger = logging.getLogger(__name__)
@@ -20,25 +26,31 @@ class GameConsumer(AsyncWebsocketConsumer):
         self.token = None
 
     async def connect(self):
-        self.room_id = self.scope["url_route"]["kwargs"]["room_id"]
+        try:
+            self.room_id = int(self.scope["url_route"]["kwargs"]["room_id"])
+        except (KeyError, ValueError, TypeError):
+            logger.error(f"Invalid room_id in URL route")
+            await self.close(code=4004)
+            return
+
         self.room_group_name = f"game_{self.room_id}"
 
         query_string = self.scope.get("query_string", b"").decode()
         query_params = parse_qs(query_string)
+        self.token = query_params.get("token", [None])[0][:TOKEN_KEY_LENGTH]
 
-        self.token = query_params.get("token", [None])[0]
-
-        if self.token and len(self.token) >= TOKEN_KEY_LENGTH:
-            self.token = self.token[:TOKEN_KEY_LENGTH]
-        else:
-            import uuid
-
-            self.token = str(uuid.uuid4())[:TOKEN_KEY_LENGTH]
+        if not self.token or len(self.token) < TOKEN_KEY_LENGTH:
+            self.token = str(uuid.uuid4())
+            logger.info(f"Generated new token for connection: {self.token[:8]}...")
 
         try:
-            self.room = await database_sync_to_async(Room.objects.get)(id=self.room_id)
+            self.room = await database_sync_to_async(Room.objects.select_related().get)(
+                id=self.room_id
+            )
+
             if not self.room.game_state:
                 await database_sync_to_async(self.room.initialize_game)()
+                logger.info(f"Initialized game state for room {self.room_id}")
 
             game_state = await GameService.handle_move(
                 self.room_id,
@@ -50,23 +62,37 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
 
             if "error" in game_state:
-                await self.close(code=4000)  # Bad Request
+                logger.error(
+                    f"GameService error for room {self.room_id}, "
+                    f"token {self.token[:8]}...: {game_state.get('error')}"
+                )
+                await self.close(code=4000)
                 return
 
-            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
             await self.accept()
 
-            logger.info(f"Player {self.token} connected to room {self.room_id}")
+            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
+
+            logger.info(f"Player {self.token[:8]}... connected to room {self.room_id}")
+
+            await log_user_action_async(
+                token=self.token, room=self.room, user_action="joined_room"
+            )
 
             await self.send(
                 text_data=json.dumps({"type": "update", "state": game_state})
             )
 
         except Room.DoesNotExist:
-            await self.close(code=4004)  # Room not found
+            logger.warning(f"Room {self.room_id} not found")
+            await self.close(code=4004)
         except Exception as e:
-            logger.error(f"Error connecting to room {self.room_id}: {e}")
-            await self.close(code=1011)  # Internal error
+            logger.error(
+                f"Unexpected error connecting to room {self.room_id}: "
+                f"{type(e).__name__}: {e}",
+                exc_info=True,
+            )
+            await self.close(code=1011)
 
     async def disconnect(self, close_code):
         if self.room:
@@ -78,6 +104,10 @@ class GameConsumer(AsyncWebsocketConsumer):
                     "token": self.token,
                 },
                 {"token": self.token},
+            )
+
+            await log_user_action_async(
+                token=self.token, room=self.room, user_action="left_room"
             )
 
         if self.room_group_name:
@@ -99,6 +129,18 @@ class GameConsumer(AsyncWebsocketConsumer):
                     payload,
                     {"token": self.token},
                 )
+
+                await log_user_action_async(
+                    token=self.token,
+                    room=self.room,
+                    user_action="guessed_code",
+                    data=payload,
+                )
+
+                if game_state.get("game_won"):
+                    await log_user_action_async(
+                        token=self.token, room=self.room, user_action="won_game"
+                    )
 
                 if "error" in game_state:
                     await self.send(
@@ -140,6 +182,7 @@ class GameConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({"type": "error", "message": str(e)}))
 
     async def game_update(self, event):
+        # use from the client
         await self.send(
             text_data=json.dumps({"type": "update", "state": event["state"]})
         )

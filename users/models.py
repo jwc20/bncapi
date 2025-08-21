@@ -39,7 +39,6 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser):
     email = models.EmailField(unique=True)
-    # password = models.CharField("password", max_length=128, null=True, blank=True)
     username = models.CharField(unique=True, max_length=100, db_index=True)
     disabled = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
@@ -50,3 +49,6 @@ class User(AbstractBaseUser):
     USERNAME_FIELD = "email"
 
     objects = UserManager()
+
+    def __str__(self) -> str:
+        return super().__str__()

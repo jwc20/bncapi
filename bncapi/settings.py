@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
+    "django.contrib.sites",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
@@ -32,6 +33,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "ninja",
     "channels",
+    "actstream",
     # custom apps
     "knoxtokens",
     "users",
@@ -194,3 +196,10 @@ else:
 # }
 
 PUBLIC_API_URL = os.getenv("PUBLIC_API_URL", "http://127.0.0.1:8000/api")
+
+
+ACTSTREAM_SETTINGS = {
+    "FETCH_RELATIONS": True,  # Set this to False to disable select_related and prefetch_related when querying for any streams. When True, related generic foreign keys will be prefetched for stream generation (preferable).
+    "USE_PREFETCH": True,  # Set this to True to forcefully enable prefetch_related (Django>=1.4 only). On earlier versions, the generic foreign key prefetch fallback contained within actstream.gfk will be enabled.
+    "USE_JSONFIELD": True,  # Set this setting to True to enable the Action.data JSONField for all actions. Lets you add custom data to any of your actions, see Custom Action Data
+}

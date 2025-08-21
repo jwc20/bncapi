@@ -1,102 +1,128 @@
+import json
+
+from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from ninja import Router, Schema
+from ninja import Router
 from ninja.errors import HttpError
-
-# from typing import List
-# from datetime import datetime
-# from knoxtokens.auth import TokenAuthentication
-# from django.contrib.auth import authenticate
-
 from .models import Room
+from .schemas import RoomSchema, CreateRoomSchema
+from knoxtokens.auth import async_token_auth
+from bncpy.bnc.utils import get_random_number, get_random_number_async
+from actstream import action
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 User = get_user_model()
 
 import logging
 
 logger = logging.getLogger(__name__)
-
 game_router = Router(tags=["Games"])
-
-
-class RoomSchema(Schema):
-    id: int
-    name: str
-    game_type: int
-    code_length: int | None
-    num_of_colors: int | None
-    num_of_guesses: int | None
-    secret_code: str | None
-
-
-class CreateRoomRequest(Schema):
-    name: str
-    game_type: int
-    code_length: int | None = 4
-    num_of_colors: int | None = 6
-    num_of_guesses: int | None = 10
-    secret_code: str | None
-
-
-class CreateRandomSingleplayerRoomRequest(Schema):
-    code_length: int | None = 4
-    num_of_colors: int | None = 6
-    num_of_guesses: int | None = 10
-    game_type: int = 0
-
-
-class CheckBullsCowsRequest(Schema):
-    room_id: int
-    guess: str
-
-
-class CheckBullsCowsResponse(Schema):
-    bulls: int
-    cows: int
 
 
 @game_router.get("/rooms", response=list[RoomSchema], summary="List all rooms")
 def list_rooms(request):
-    return [
-        {
-            "id": room.id,
-            "name": room.name,
-            "game_type": room.game_type,
-            "code_length": room.code_length,
-            "num_of_colors": room.num_of_colors,
-            "num_of_guesses": room.num_of_guesses,
-            "secret_code": room.secret_code,
-        }
-        for room in Room.objects.all().order_by("id").reverse()
-    ]
+    return [RoomSchema.from_orm(room) for room in Room.objects.all()]
+
+
+@game_router.post(
+    "/rooms-async",
+    auth=async_token_auth,
+    response=RoomSchema,
+    summary="Create a new room async",
+)
+async def create_room_async(request, data: CreateRoomSchema):
+    if not request.auth or len(request.auth) < 1:
+        raise HttpError(401, "Authentication required")
+
+    _user = request.auth[0]
+    validated_data = data.dict()
+
+    validated_data["secret_code"] = await get_random_number_async(
+        length=validated_data["code_length"],
+        max_value=validated_data["num_of_colors"],
+    )
+    validated_data["created_by"] = _user
+    try:
+        room = await database_sync_to_async(Room.objects.create)(**validated_data)
+
+        await database_sync_to_async(action.send)(
+            _user,
+            verb="created room",
+            target=room,
+            data=json.dumps(
+                {
+                    "id": room.id,
+                    "name": room.name,
+                    "game_type": room.game_type,
+                }
+            ),
+        )
+
+        return RoomSchema.from_orm(room)
+    except ValidationError as e:
+        logger.error(f"Room creation validation error: {e}")
+        raise HttpError(400, "Invalid room configuration")
+    except IntegrityError as e:
+        logger.error(f"Room creation integrity error: {e}")
+        raise HttpError(409, "Room with this configuration already exists")
+    except Exception as e:
+        logger.error(f"Unexpected room creation error: {e}")
+        raise HttpError(500, "Internal server error")
 
 
 @game_router.post("/rooms", response=RoomSchema, summary="Create a new room")
-def create_room(request, data: CreateRoomRequest):
-    from bncpy.bnc.utils import get_random_number
+def create_room(request, data: CreateRoomSchema):
+    if not request.auth or len(request.auth) < 1:
+        raise HttpError(401, "Authentication required")
 
+    _user = request.auth[0]
     validated_data = data.dict()
+
     validated_data["secret_code"] = get_random_number(
         length=validated_data["code_length"],
         max_value=validated_data["num_of_colors"],
     )
+    validated_data["created_by"] = _user
     try:
         room = Room.objects.create(**validated_data)
-        return {
+        if hasattr(request, "session"):
+            request.session["user"] = {
+                "id": _user.id,
+                "email": _user.email,
+                "username": _user.username,
+            }
+        log_data = {
             "id": room.id,
             "name": room.name,
             "game_type": room.game_type,
-            "code_length": room.code_length,
-            "num_of_colors": room.num_of_colors,
-            "num_of_guesses": room.num_of_guesses,
-            "secret_code": room.secret_code,
         }
+        action.send(_user, verb="created room", target=room, data=json.dumps(log_data))
+        return RoomSchema.from_orm(room)
+    except ValidationError as e:
+        logger.error(f"Room creation validation error: {e}")
+        raise HttpError(400, "Invalid room configuration")
+    except IntegrityError as e:
+        logger.error(f"Room creation integrity error: {e}")
+        raise HttpError(409, "Room with this configuration already exists")
     except Exception as e:
-        logger.error(f"Room creation error: {e}")
-        raise HttpError(400, "Room creation failed")
+        logger.error(f"Unexpected room creation error: {e}")
+        raise HttpError(500, "Internal server error")
 
 
-@game_router.get("/rooms/{room_id}", response=RoomSchema, summary="Get room by ID")
+######################################################################################
+## deprecated ########################################################################
+######################################################################################
+
+
+# deprecated
+@game_router.get(
+    "/rooms/{room_id}",
+    response=RoomSchema,
+    summary="Get room by ID",
+    deprecated=True,
+)
 def get_room(request, room_id: int):
     try:
         room = Room.objects.get(id=room_id)
@@ -116,13 +142,14 @@ def get_room(request, room_id: int):
         raise HttpError(400, "Room retrieval failed")
 
 
-# TODO: deprecate
+# deprecated
 @game_router.post(
     "/quick-play",
     response=RoomSchema,
     summary="Create a new singleplayer room with random secret code",
+    deprecated=True,
 )
-def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomRequest):
+def create_random_singleplayer_room(request, data):
     try:
         # from bnc.utils import get_random_number
         from bncpy.bnc.utils import get_random_number
@@ -137,7 +164,15 @@ def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomR
             max_value=validated_data["num_of_colors"],
         )
         room = Room.objects.create(**validated_data)
-        return RoomSchema(id=room.id, name=room.name, game_type=room.game_type)
+        return {
+            "id": room.id,
+            "name": room.name,
+            "game_type": room.game_type,
+            "code_length": room.code_length,
+            "num_of_colors": room.num_of_colors,
+            "num_of_guesses": room.num_of_guesses,
+            "secret_code": room.secret_code,
+        }
     except IntegrityError:
         raise HttpError(400, "Room with this name already exists")
     except Exception as e:
@@ -145,13 +180,13 @@ def create_random_singleplayer_room(request, data: CreateRandomSingleplayerRoomR
         raise HttpError(400, "Room creation failed")
 
 
-# TODO: deprecate
+# deprecated
 @game_router.post(
     "/check",
-    response=CheckBullsCowsResponse,
     summary="Check guess for bulls and cows",
+    deprecated=True,
 )
-def check_game(request, data: CheckBullsCowsRequest):
+def check_game(request, data):
     # TODO: replace naive solution, use Game, Player, Board classes
     try:
         # from bnc.utils import calculate_bulls_and_cows
@@ -169,7 +204,10 @@ def check_game(request, data: CheckBullsCowsRequest):
             validated_data["guess"], room.code_length, room.num_of_colors
         )
         bulls, cows = calculate_bulls_and_cows(_secret_code_list, _guess_list)
-        return CheckBullsCowsResponse(bulls=bulls, cows=cows)
+        return {
+            "bulls": bulls,
+            "cows": cows,
+        }
     except Exception as e:
         logger.error(f"Game check error: {e}")
         raise HttpError(400, "Game check failed")

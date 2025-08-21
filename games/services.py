@@ -1,10 +1,7 @@
 from channels.db import database_sync_to_async
 from .models import Room
 from bncpy.bnc import GameState, GameConfig
-
-# from django.contrib.auth import get_user_model  # TODO: use this to get the username?
 import logging
-
 
 logger = logging.getLogger(__name__)
 

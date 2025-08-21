@@ -54,6 +54,15 @@ def get_leaderboard(request):
                         "username": user_lookup[int(user_id)],
                         "games_won": activity_counts["won_game"],
                         "joined_rooms": activity_counts["joined_room"],
+                        "win_rate": round(
+                            (
+                                activity_counts["won_game"]
+                                / activity_counts["joined_room"]
+                                if activity_counts["joined_room"] > 0
+                                else 0
+                            ),
+                            2,
+                        ),
                     }
                 )
 

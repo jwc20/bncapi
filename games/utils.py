@@ -22,6 +22,7 @@ class UserAction(Enum):
     LEFT_ROOM = "left_room"
     WON_GAME = "won_game"
     GUESSED_CODE = "guessed_code"
+    CREATED_ROOM = "created_room"
 
 
 def _validate_token(token: str) -> bool:

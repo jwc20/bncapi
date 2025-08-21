@@ -1,18 +1,20 @@
-import json
-import logging
-from urllib.parse import parse_qs
-
+from actstream import action
 from actstream.models import Action
 from channels.generic.websocket import AsyncWebsocketConsumer
-from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 from .models import Room
 from .services import GameService
+import uuid
+import json
+import logging
 from django.conf import settings
-from actstream import action
+from channels.db import database_sync_to_async
+from knoxtokens.models import KnoxToken
+from django.contrib.auth.models import User
+from urllib.parse import parse_qs
 
 TOKEN_KEY_LENGTH = getattr(settings, "TOKEN_KEY_LENGTH", 8)
 logger = logging.getLogger(__name__)
@@ -27,25 +29,31 @@ class GameConsumer(AsyncWebsocketConsumer):
         self.token = None
 
     async def connect(self):
-        self.room_id = self.scope["url_route"]["kwargs"]["room_id"]
+        try:
+            self.room_id = int(self.scope["url_route"]["kwargs"]["room_id"])
+        except (KeyError, ValueError, TypeError):
+            logger.error(f"Invalid room_id in URL route")
+            await self.close(code=4004)
+            return
+
         self.room_group_name = f"game_{self.room_id}"
 
         query_string = self.scope.get("query_string", b"").decode()
         query_params = parse_qs(query_string)
+        self.token = query_params.get("token", [None])[0][:TOKEN_KEY_LENGTH]
 
-        self.token = query_params.get("token", [None])[0]
-
-        if self.token and len(self.token) >= TOKEN_KEY_LENGTH:
-            self.token = self.token[:TOKEN_KEY_LENGTH]
-        else:
-            import uuid
-
-            self.token = str(uuid.uuid4())[:TOKEN_KEY_LENGTH]
+        if not self.token or len(self.token) < TOKEN_KEY_LENGTH:
+            self.token = str(uuid.uuid4())
+            logger.info(f"Generated new token for connection: {self.token[:8]}...")
 
         try:
-            self.room = await database_sync_to_async(Room.objects.get)(id=self.room_id)
+            self.room = await database_sync_to_async(Room.objects.select_related().get)(
+                id=self.room_id
+            )
+
             if not self.room.game_state:
                 await database_sync_to_async(self.room.initialize_game)()
+                logger.info(f"Initialized game state for room {self.room_id}")
 
             game_state = await GameService.handle_move(
                 self.room_id,
@@ -57,49 +65,35 @@ class GameConsumer(AsyncWebsocketConsumer):
             )
 
             if "error" in game_state:
-                await self.close(code=4000)  # Bad Request
+                logger.error(
+                    f"GameService error for room {self.room_id}, "
+                    f"token {self.token[:8]}...: {game_state.get('error')}"
+                )
+                await self.close(code=4000)
                 return
 
-            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
             await self.accept()
 
-            logger.info(f"Player {self.token} connected to room {self.room_id}")
+            await self.channel_layer.group_add(self.room_group_name, self.channel_name)
 
-            try:
-                from knoxtokens.models import KnoxToken
+            logger.info(f"Player {self.token[:8]}... connected to room {self.room_id}")
 
-                token = await database_sync_to_async(KnoxToken.objects.get)(
-                    token_key=self.token[:TOKEN_KEY_LENGTH]
-                )
-                user = await database_sync_to_async(User.objects.get)(id=token.user_id)
+            await self._log_user_action()
 
-                try:
-                    # check if the user already has an action
-                    await database_sync_to_async(Action.objects.get)(
-                        actor_object_id=user.id,
-                        verb="joined room",
-                        action_object_object_id=self.room.id,
-                    )
-                except Action.DoesNotExist:
-                    await database_sync_to_async(action.send)(
-                        user,
-                        verb="joined room",
-                        action_object=self.room,
-                    )
-
-            except Exception as e:
-                logger.error(f"Error sending action: {e}")
-
-            # send the game state to socket
             await self.send(
                 text_data=json.dumps({"type": "update", "state": game_state})
             )
 
         except Room.DoesNotExist:
-            await self.close(code=4004)  # Room not found
+            logger.warning(f"Room {self.room_id} not found")
+            await self.close(code=4004)
         except Exception as e:
-            logger.error(f"Error connecting to room {self.room_id}: {e}")
-            await self.close(code=1011)  # Internal error
+            logger.error(
+                f"Unexpected error connecting to room {self.room_id}: "
+                f"{type(e).__name__}: {e}",
+                exc_info=True,
+            )
+            await self.close(code=1011)
 
     async def disconnect(self, close_code):
         if self.room:
@@ -176,3 +170,37 @@ class GameConsumer(AsyncWebsocketConsumer):
         await self.send(
             text_data=json.dumps({"type": "update", "state": event["state"]})
         )
+
+    async def _log_user_action(self):
+        try:
+            token = await database_sync_to_async(
+                KnoxToken.objects.select_related("user").get
+            )(token_key=self.token[:TOKEN_KEY_LENGTH])
+            user = token.user
+
+            try:
+                await database_sync_to_async(Action.objects.get)(
+                    actor_object_id=user.id,
+                    verb="joined room",
+                    action_object_object_id=self.room.id,
+                )
+            except Action.DoesNotExist:
+                await database_sync_to_async(action.send)(
+                    user,
+                    verb="joined room",
+                    action_object=self.room,
+                )
+                logger.info(
+                    f"Created action log for user {user.id} joining room {self.room.id}"
+                )
+
+        except KnoxToken.DoesNotExist:
+            logger.debug(f"Anonymous connection with token {self.token[:8]}...")
+        except User.DoesNotExist:
+            logger.warning(
+                f"Knox token exists but user not found for token {self.token[:8]}..."
+            )
+        except Exception as e:
+            logger.error(
+                f"Error logging user action: {type(e).__name__}: {e}", exc_info=True
+            )

@@ -31,6 +31,37 @@ logger = logging.getLogger(__name__)
 user_router = Router(tags=["Users"])
 auth_router = Router(tags=["Authentication"], auth=None)
 
+from collections import Counter, defaultdict
+
+
+@user_router.get("/leaderboard", summary="Get leaderboard", auth=None)
+def get_leaderboard(request):
+    try:
+        actions = Action.objects.filter(verb__in=["won_game", "joined_room"]).values(
+            "actor_object_id", "verb"
+        )
+        user_lookup = {user.id: user.username for user in User.objects.all()}
+        user_activities = defaultdict(Counter)
+        for action in actions:
+            user_id = action["actor_object_id"]
+            user_activities[user_id][action["verb"]] += 1
+
+        stats = []
+        for user_id, activity_counts in user_activities.items():
+            if int(user_id) in user_lookup:
+                stats.append(
+                    {
+                        "username": user_lookup[int(user_id)],
+                        "games_won": activity_counts["won_game"],
+                        "joined_rooms": activity_counts["joined_room"],
+                    }
+                )
+
+        return stats
+
+    except Exception as e:
+        raise HttpError(500, f"Error fetching leaderboard: {str(e)}")
+
 
 @user_router.get(
     "/activities",

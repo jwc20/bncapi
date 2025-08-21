@@ -1,10 +1,17 @@
 import json
+
+from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from ninja import Router
 from ninja.errors import HttpError
 from .models import Room
-from .schemas import RoomSchema
+from .schemas import RoomSchema, CreateRoomSchema
+from knoxtokens.auth import async_token_auth
+from bncpy.bnc.utils import get_random_number, get_random_number_async
+from actstream import action
+from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 User = get_user_model()
 
@@ -19,13 +26,54 @@ def list_rooms(request):
     return [RoomSchema.from_orm(room) for room in Room.objects.all()]
 
 
-@game_router.post("/rooms", response=RoomSchema, summary="Create a new room")
-def create_room(request, data: RoomSchema):
-    from bncpy.bnc.utils import get_random_number
-    from actstream import action
-    from django.core.exceptions import ValidationError
-    from django.db import IntegrityError
+@game_router.post(
+    "/rooms-async",
+    auth=async_token_auth,
+    response=RoomSchema,
+    summary="Create a new room async",
+)
+async def create_room_async(request, data: CreateRoomSchema):
+    if not request.auth or len(request.auth) < 1:
+        raise HttpError(401, "Authentication required")
 
+    _user = request.auth[0]
+    validated_data = data.dict()
+
+    validated_data["secret_code"] = await get_random_number_async(
+        length=validated_data["code_length"],
+        max_value=validated_data["num_of_colors"],
+    )
+    validated_data["created_by"] = _user
+    try:
+        room = await database_sync_to_async(Room.objects.create)(**validated_data)
+
+        await database_sync_to_async(action.send)(
+            _user,
+            verb="created room",
+            target=room,
+            data=json.dumps(
+                {
+                    "id": room.id,
+                    "name": room.name,
+                    "game_type": room.game_type,
+                }
+            ),
+        )
+
+        return RoomSchema.from_orm(room)
+    except ValidationError as e:
+        logger.error(f"Room creation validation error: {e}")
+        raise HttpError(400, "Invalid room configuration")
+    except IntegrityError as e:
+        logger.error(f"Room creation integrity error: {e}")
+        raise HttpError(409, "Room with this configuration already exists")
+    except Exception as e:
+        logger.error(f"Unexpected room creation error: {e}")
+        raise HttpError(500, "Internal server error")
+
+
+@game_router.post("/rooms", response=RoomSchema, summary="Create a new room")
+def create_room(request, data: CreateRoomSchema):
     if not request.auth or len(request.auth) < 1:
         raise HttpError(401, "Authentication required")
 
@@ -36,6 +84,7 @@ def create_room(request, data: RoomSchema):
         length=validated_data["code_length"],
         max_value=validated_data["num_of_colors"],
     )
+    validated_data["created_by"] = _user
     try:
         room = Room.objects.create(**validated_data)
         if hasattr(request, "session"):

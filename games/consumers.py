@@ -134,6 +134,11 @@ class GameConsumer(AsyncWebsocketConsumer):
                     token=self.token, room=self.room, user_action="guessed_code"
                 )
 
+                if game_state.get("game_won"):
+                    await log_user_action(
+                        token=self.token, room=self.room, user_action="won_game"
+                    )
+
                 if "error" in game_state:
                     await self.send(
                         text_data=json.dumps(

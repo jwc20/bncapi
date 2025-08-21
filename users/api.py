@@ -1,7 +1,7 @@
 from actstream.models import Action
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from ninja import Router, Query
+from ninja import Router, Query, Schema
 from ninja.errors import HttpError
 from typing import List
 from actstream import action
@@ -34,7 +34,19 @@ auth_router = Router(tags=["Authentication"], auth=None)
 from collections import Counter, defaultdict
 
 
-@user_router.get("/leaderboard", summary="Get leaderboard", auth=None)
+class UserLeaderboardSchema(Schema):
+    username: str
+    games_won: int
+    joined_rooms: int
+    win_rate: float
+
+
+@user_router.get(
+    "/leaderboard",
+    response=list[UserLeaderboardSchema],
+    summary="Get leaderboard",
+    auth=None,
+)
 def get_leaderboard(request):
     try:
         actions = Action.objects.filter(verb__in=["won_game", "joined_room"]).values(
@@ -66,7 +78,7 @@ def get_leaderboard(request):
                     }
                 )
 
-        return stats
+        return [UserLeaderboardSchema.model_validate(s) for s in stats]
 
     except Exception as e:
         raise HttpError(500, f"Error fetching leaderboard: {str(e)}")

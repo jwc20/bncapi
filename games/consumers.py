@@ -1,11 +1,18 @@
 import json
 import logging
 from urllib.parse import parse_qs
+
+from actstream.models import Action
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 from .models import Room
 from .services import GameService
 from django.conf import settings
+from actstream import action
 
 TOKEN_KEY_LENGTH = getattr(settings, "TOKEN_KEY_LENGTH", 8)
 logger = logging.getLogger(__name__)
@@ -58,6 +65,32 @@ class GameConsumer(AsyncWebsocketConsumer):
 
             logger.info(f"Player {self.token} connected to room {self.room_id}")
 
+            try:
+                from knoxtokens.models import KnoxToken
+
+                token = await database_sync_to_async(KnoxToken.objects.get)(
+                    token_key=self.token[:TOKEN_KEY_LENGTH]
+                )
+                user = await database_sync_to_async(User.objects.get)(id=token.user_id)
+
+                try:
+                    # check if the user already has an action
+                    await database_sync_to_async(Action.objects.get)(
+                        actor_object_id=user.id,
+                        verb="joined room",
+                        action_object_object_id=self.room.id,
+                    )
+                except Action.DoesNotExist:
+                    await database_sync_to_async(action.send)(
+                        user,
+                        verb="joined room",
+                        action_object=self.room,
+                    )
+
+            except Exception as e:
+                logger.error(f"Error sending action: {e}")
+
+            # send the game state to socket
             await self.send(
                 text_data=json.dumps({"type": "update", "state": game_state})
             )

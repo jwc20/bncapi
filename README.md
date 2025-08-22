@@ -35,11 +35,6 @@ python manage.py runserver
 
 Access the Swagger OpenApi on http://0.0.0.0:8000/api/docs.
 
-
-## Models
-
-<img src="/db.png" alt="db erd" width="400">
-
 ## Custom Token Authentication
 
 This project uses [custom knox token django app](https://github.com/jwc20/knoxtokens) tailored for Django-Ninja.

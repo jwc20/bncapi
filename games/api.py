@@ -23,7 +23,7 @@ game_router = Router(tags=["Games"])
 
 @game_router.get("/rooms", response=list[RoomSchema], summary="List all rooms")
 def list_rooms(request):
-    return [RoomSchema.from_orm(room) for room in Room.objects.all()]
+    return [RoomSchema.from_orm(room) for room in Room.objects.all().order_by("id").reverse()]
 
 
 @game_router.post(

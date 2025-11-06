@@ -43,6 +43,10 @@ Unlike JWTs, which are tricky to revoke once they’re out in the wild, Knox kee
 It’s a great fit for APIs that need secure, multi-device logins without the headache of managing JWT blacklists or heavy session state.
 Since Knox tokens are stored in a securely hashed form, even if someone gets access to the database, they can’t use the stored token to log in.
 
+## Data Models
+
+<img width="1179" height="515" alt="image" src="https://github.com/user-attachments/assets/10c11539-898e-4c4c-983a-96487e34260e" />
+
 
 ## Dependencies
 

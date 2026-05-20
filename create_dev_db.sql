@@ -1,2 +1,5 @@
-CREATE DATABASE bncapi_dev;
--- CREATE DATABASE bncapi_test;
+-- SQLite is used as the database backend.
+-- No manual database creation is required; Django will create db.sqlite3
+-- automatically when migrations are run:
+--
+--   python manage.py migrate

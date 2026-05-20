@@ -53,6 +53,5 @@ Since Knox tokens are stored in a securely hashed form, even if someone gets acc
 - [Django-Ninja](https://github.com/vitalik/django-ninja)
 - [Django Channels](https://github.com/django/channels)
 - [Channels-redis (Daphne)](https://github.com/django/channels_redis)
-- [psycopg2-binary](https://github.com/psycopg/psycopg2)
 - [django-cors-headers](https://github.com/adamchainz/django-cors-headers)
 - [(Custom) Knox Token Authentication](https://github.com/jwc20/knoxtokens)

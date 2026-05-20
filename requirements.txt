@@ -46,12 +46,9 @@ cryptography==45.0.6
     #   service-identity
 daphne==4.2.1
     # via channels
-dj-database-url==3.0.1
-    # via bncapi (pyproject.toml)
 django==5.2.4
     # via
     #   channels
-    #   dj-database-url
     #   django-activity-stream
     #   django-cors-headers
     #   django-ninja
@@ -99,8 +96,6 @@ msgpack==1.1.1
     # via channels-redis
 packaging==25.0
     # via gunicorn
-psycopg2-binary==2.9.10
-    # via bncapi (pyproject.toml)
 pyasn1==0.6.1
     # via
     #   pyasn1-modules

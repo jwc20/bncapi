@@ -1,16 +1,12 @@
 #!/bin/bash
 
-# Setup development database
+# Setup development database (local, non-Docker environment)
+# For Docker, run migrations inside the container:
+#   docker exec -it bncapi-container python manage.py migrate
 echo "Setting up development database..."
 
-# Create databases
-docker exec -it api-db psql -U postgres -c "CREATE DATABASE bncapi_dev;"
-docker exec -it api-db psql -U postgres -c "CREATE DATABASE bncapi_test;"
-
-echo "Databases created successfully!"
-
-# Run Django migrations
+# Run Django migrations (SQLite db.sqlite3 will be created automatically)
 echo "Running Django migrations..."
-docker exec -it bncapi-container python manage.py migrate
+python manage.py migrate
 
 echo "Development database setup complete!"

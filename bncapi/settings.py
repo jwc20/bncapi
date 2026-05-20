@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import dj_database_url
 from django.utils import timezone
 from corsheaders.defaults import default_headers
 import os
@@ -171,29 +170,13 @@ else:
             },
         },
     }
-# postgres
-POSTGRES_DATABASE_URL = os.getenv("POSTGRES_DATABASE_URL")
-if POSTGRES_DATABASE_URL:
-    DATABASES = {"default": dj_database_url.parse(POSTGRES_DATABASE_URL)}
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("POSTGRES_DB", "postgres"),
-            "USER": os.getenv("POSTGRES_USER", "postgres"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD", "postgres"),
-            "HOST": os.getenv("POSTGRES_HOST", "0.0.0.0"),
-            "PORT": int(os.getenv("POSTGRES_PORT", 5432)),
-        }
+_sqlite_db_dir = os.getenv("SQLITE_DB_DIR")
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": Path(_sqlite_db_dir) / "db.sqlite3" if _sqlite_db_dir else BASE_DIR / "db.sqlite3",
     }
-
-# sqlite (commented out - use for local development if needed)
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
+}
 
 PUBLIC_API_URL = os.getenv("PUBLIC_API_URL", "http://127.0.0.1:8000/api")
 

@@ -13,7 +13,7 @@ Docs: https://github.com/jwc20/bnc-docs
 # build and start docker containers
 docker compose -f docker-compose.yml up -d --build
 
-# setup the production database
+# setup the SQLite database
 ./setup_dev_db.sh
 
 # Stop when done
@@ -54,6 +54,5 @@ Since Knox tokens are stored in a securely hashed form, even if someone gets acc
 - [Django-Ninja](https://github.com/vitalik/django-ninja)
 - [Django Channels](https://github.com/django/channels)
 - [Channels-redis (Daphne)](https://github.com/django/channels_redis)
-- [psycopg2-binary](https://github.com/psycopg/psycopg2)
 - [django-cors-headers](https://github.com/adamchainz/django-cors-headers)
 - [(Custom) Knox Token Authentication](https://github.com/jwc20/knoxtokens)
